@@ -1,0 +1,3 @@
+./test/0001TP_006720.png,./test_labels/0001TP_006720_L.png
+./test/0001TP_006720.png,./test_labels/0001TP_006720_L.png
+./test/0001TP_006720.png,./test_labels/0001TP_006720_L.png

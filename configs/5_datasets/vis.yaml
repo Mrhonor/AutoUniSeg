@@ -1,0 +1,35 @@
+_BASE_: Base-Cityscapes-SemanticSegmentation_gnn.yaml
+MODEL:
+  META_ARCHITECTURE: "HRNet_W48_Finetune_Vis_ARCH"
+  WEIGHTS: "output/5ds_ltbgnn_llama_model_finetune.pth"
+  PRETRAINING: False
+  SEM_SEG_HEAD:
+    NAME: "HRNet_W48_llama"
+    OUTPUT_FEAT_DIM: 512
+    BN_TYPE: "torchbn"
+  GNN:
+    GNN_MODEL_NAME: "Learnable_Topology_BGNN_llama"
+    NFEAT: 1024
+    NFEAT_OUT: 512
+    nfeat_adj: 256
+    adj_feat_dim: 128
+    dropout_rate: 0.5
+    threshold_value: 0.95
+    calc_bipartite: False
+    output_max_adj: True
+    output_softmax_adj: True
+    uot_ratio: 1.0
+    mse_or_adv: "None"
+    GNN_type: "GSAGE"
+    with_datasets_aux: False
+    init_stage_iters: -1
+    isGumbelSoftmax: False
+    GNN_ITERS: 20000
+    SEG_ITERS: 20000
+    FIRST_STAGE_GNN_ITERS: 15000
+    FINETUNE_STAGE1_ITERS: 20000
+    INIT_ADJ_PATH: None
+DATASETS:
+  TRAIN: ("cs_sem_seg_train", "mapi_sem_seg_train", "bdd_sem_seg_train", "idd_sem_seg_train", "wilddash2_new_sem_seg_val")
+  EVAL: ("cs_sem_seg_train_2", "mapi_sem_seg_train_2", "bdd_sem_seg_train_2", "idd_sem_seg_train_2", "wilddash2_new_sem_seg_val")
+  TEST: ("cs_sem_seg_val", "mapi_sem_seg_train_2", "bdd_sem_seg_val", "idd_sem_seg_val", "wilddash2_new_sem_seg_val")

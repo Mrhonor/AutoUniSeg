@@ -1,0 +1,70 @@
+MODEL:
+  BACKBONE:
+    FREEZE_AT: 0
+    NAME: "HighResolutionNet"
+  WEIGHTS: "output/model_final_4GPU.pth"
+  PIXEL_MEAN: [123.675, 116.280, 103.530]
+  PIXEL_STD: [58.395, 57.120, 57.375]
+  HRNET:
+    HRNET_CFG: "hrnet48"
+    KEEP_IMAGENET_HEAD: False  # not used
+    DROP_STAGE4: False
+    FULL_RES_STEM: False
+    BN_TYPE: "torchbn"  # use syncbn for cityscapes dataset
+  AUX_MODE: "train"
+  PRETRAINING: True
+DATASETS:
+  TRAIN: ("wilddash_v1_sem_seg_train", )
+  TEST: ("wilddash_v1_sem_seg_val", )
+  DATASETS_CATS: [19, 64, 37, 19, 26, 150, 133]
+  IGNORE_LB: 255
+  NUM_UNIFY_CLASS: 448
+  CONFIGER: 'configs/ltbgnn_7_datasets_snp.json'
+LOSS:
+  OHEM_THRESH: 0.7 
+  WITH_SPA_LOSS: True
+  WITH_ORTH_LOSS: True
+  WITH_ADJ_LOSS: True
+SOLVER:
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.0001
+  MAX_ITER: 40000
+  WARMUP_FACTOR: 1.0
+  WARMUP_ITERS: 0
+  WEIGHT_DECAY: 0.05
+  OPTIMIZER: "ADAMW"
+  LR_SCHEDULER_NAME: "WarmupPolyLR"
+  BACKBONE_MULTIPLIER: 0.1
+  CLIP_GRADIENTS:
+    ENABLED: True
+    CLIP_TYPE: "full_model"
+    CLIP_VALUE: 0.01
+    NORM_TYPE: 2.0
+  AMP:
+    ENABLED: True
+INPUT:
+  MIN_SIZE_TRAIN: !!python/object/apply:eval ["[int(x * 0.1 * 512) for x in range(5, 41)]"]
+  MIN_SIZE_TRAIN_SAMPLING: "choice"
+  MIN_SIZE_TEST: 512
+  MAX_SIZE_TRAIN: 4096
+  MAX_SIZE_TEST: 4096
+  CROP:
+    ENABLED: True
+    TYPE: "absolute"
+    SIZE: (768, 768)
+    SINGLE_CATEGORY_MAX_AREA: 1.0
+  COLOR_AUG_SSD: True
+  SIZE_DIVISIBILITY: -1
+  FORMAT: "RGB"
+  DATASET_MAPPER_NAME: "DALI"
+TEST:
+  EVAL_PERIOD: 10000
+  AUG:
+    ENABLED: False
+    MIN_SIZES: [256, 384, 512, 640, 768, 896, 512, 768, 1024, 1280, 1536, 1792]
+    MAX_SIZE: 4096
+    FLIP: True
+DATALOADER:
+  FILTER_EMPTY_ANNOTATIONS: True
+  NUM_WORKERS: 4
+VERSION: 2

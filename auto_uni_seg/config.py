@@ -23,7 +23,6 @@ def add_hrnet_config(cfg):
     cfg.SOLVER.OPTIMIZER = "ADAMW"
     cfg.SOLVER.BACKBONE_MULTIPLIER = 0.1
 
-    # mask_former model config
     cfg.MODEL.HRNET = CN()
 
     cfg.MODEL.HRNET.HRNET_CFG = "hrnet48"

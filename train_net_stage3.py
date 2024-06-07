@@ -37,7 +37,6 @@ from detectron2.solver.build import maybe_add_gradient_clipping
 from detectron2.utils.logger import setup_logger
 
 
-# MaskFormer
 from auto_uni_seg import (
     SemanticDatasetMapper,
     add_hrnet_config,
@@ -88,9 +87,6 @@ def my_sem_seg_loading_fn(filename, dtype=int, lb_map=None, size_divisibility=-1
 
 
 class Trainer(DefaultTrainer):
-    """
-    Extension of the Trainer class adapted to MaskFormer.
-    """
 
 
     @classmethod

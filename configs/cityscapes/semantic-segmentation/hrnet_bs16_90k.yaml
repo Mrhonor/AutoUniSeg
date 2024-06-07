@@ -1,0 +1,9 @@
+_BASE_: Base-Cityscapes-SemanticSegmentation_hrnet.yaml
+MODEL:
+  META_ARCHITECTURE: "HRNet_W48_ARCH"
+  SEM_SEG_HEAD:
+    NAME: "HRNet_W48_Ori"
+    OUTPUT_FEAT_DIM: 19
+    WITH_DATASETS_AUX: False
+    BN_TYPE: "torchbn"
+

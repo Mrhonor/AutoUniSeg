@@ -1,0 +1,27 @@
+_BASE_: Base-Cityscapes-SemanticSegmentation_snp.yaml
+MODEL:
+  META_ARCHITECTURE: "HRNet_W48_ARCH"
+  SEM_SEG_HEAD:
+    NAME: "SemsegModel"
+    OUTPUT_FEAT_DIM: 512
+    BN_TYPE: "torchbn"
+  GNN:
+    NFEAT: 1024
+    NFEAT_OUT: 512
+    nfeat_adj: 256
+    adj_feat_dim: 128
+    dropout_rate: 0.5
+    threshold_value: 0.95
+    calc_bipartite: False
+    output_max_adj: True
+    output_softmax_adj: True
+    uot_ratio: 1.01
+    mse_or_adv: "None"
+    GNN_type: "GSAGE"
+    with_datasets_aux: False
+    init_stage_iters: 10000
+    isGumbelSoftmax: False
+    GNN_ITERS: 20000
+    SEG_ITERS: 20000
+    FIRST_STAGE_GNN_ITERS: 15000
+    INIT_ADJ_PATH: "output/init_adj_7_datasets.pt"

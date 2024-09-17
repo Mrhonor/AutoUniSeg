@@ -58,7 +58,7 @@ def inference_context(model):
 # }
 class UniDetLearnUnifyLabelSpace(HookBase):
     @torch.no_grad()
-    def After_train(self):
+    def after_train(self):
         logger = logging.getLogger(__name__)
         logger.info("UniDetLearnUnifyLabelSpace")
         cfg = self.trainer.cfg
@@ -128,7 +128,7 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                 # print(n_classes)
                 hist = [torch.zeros(this_dataset_cat, n_class) for n_class in datasets_cats]
 
-                data_loader = self.trainer.build_test_loader(cfg, name)
+                data_loader = self.trainer.build_eval_loader(cfg, name)
                 callbacks = None
                 with torch.no_grad():
                     total = len(data_loader)
@@ -161,14 +161,19 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                             total_compute_time += time.perf_counter() - start_compute_time
 
                             start_eval_time = time.perf_counter()
-                            # for x in inputs:
-                            #     im = x["image"]
-                            #     if im.shape[-2] > 2200 or im.shape[-1] > 2200:
-                            #         x["image"] = F.interpolate(im[None].float(), size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='bilinear', align_corners=True).squeeze(0)
-                            #         x["sem_seg"] = F.interpolate(x["sem_seg"].float()[None][None], size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='nearest').squeeze().long()
+                            for x in inputs:
+                                im = x["image"]
+                                if im.shape[-2] > 1200 or im.shape[-1] > 1200:
+                                    x["image"] = F.interpolate(im[None].float(), size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='bilinear', align_corners=True).squeeze(0)
+                                    x["sem_seg"] = F.interpolate(x["sem_seg"].float()[None][None], size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='nearest').squeeze().long()
+                                    if "height" in x:
+                                        x["height"] = int(0.5 * x["height"])
+                                    if "width" in x:
+                                        x["width"] = int(0.5 * x["width"])
+                                        
                             labels = [x["sem_seg"][None].cuda() for x in inputs]
 
-                            logits = [output["uni_logits"] for output in outputs]
+                            logits = [output["uni_logits"][None] for output in outputs]
                             cnt = 0
                             cur_id = 0
                             for this_dataset_idx, _ in enumerate(datasets_name):
@@ -804,6 +809,7 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                 print()
         print()
         print('num_cats', cnt)
+        target_bi = target_bi[:, :cnt]
         torch.save(target_bi, f'output/init_adjacency.pt')
 
         # cnt = 0

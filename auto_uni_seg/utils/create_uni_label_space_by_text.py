@@ -8,24 +8,99 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import sys
-from collections import defaultdict
-from pycocotools import mask as maskutils
-import numba
 import time
 
 import pickle
 from contextlib import ExitStack, contextmanager
 
 
-from detectron2.engine.hooks import HookBase
 import datetime
 from detectron2.utils.logger import log_every_n_seconds
 from detectron2.data import MetadataCatalog
 import logging
-from ..modeling.GNN.gen_graph_node_feature import gen_graph_node_feature
+from auto_uni_seg.modeling.transformer_decoder.GNN.gen_graph_node_feature import gen_graph_node_feature
 from sklearn.cluster import DBSCAN  # DBSCAN API
 
 
+def find_neighbors(distance, point_idx, eps):
+    neighbors = []
+    # point = data[point_idx]
+
+    for idx, other_point in enumerate(distance[point_idx]):
+        if idx == point_idx:
+            continue  
+        # distance = np.linalg.norm(point - other_point)
+        if other_point <= eps:
+            neighbors.append(idx)
+    
+    return neighbors
+
+def expand_cluster(distance, point_idx, neighbors, visited, clusters, groups, eps, min_pts):
+
+    cluster = [point_idx]
+    cluster_group = [groups[point_idx]]
+    cluster_ingroup = [groups[point_idx]]
+    
+
+    i = 0
+    while i < len(neighbors):
+        neighbor_idx = neighbors[i]
+        
+        if neighbor_idx not in visited:
+            
+            
+            new_neighbors = find_neighbors(distance, neighbor_idx, eps)
+            
+            group_new_neighbors = []
+            for n in new_neighbors:
+                if groups[n] not in cluster_group:
+                    group_new_neighbors.append(n)
+                    cluster_group.append(groups[n])
+                    
+                    # new_neighbors = [n for n in new_neighbors if groups[n] not in groups[neighbor_idx]]
+
+            if len(new_neighbors) >= min_pts:
+                neighbors += group_new_neighbors  
+                
+
+        flag = True
+        for cluster_ in clusters:
+            if neighbor_idx in cluster_:
+                flag = False
+                break
+        if flag:
+            if groups[neighbor_idx] not in cluster_ingroup:
+                cluster_ingroup.append(groups[neighbor_idx])
+                cluster.append(neighbor_idx)
+                visited.add(neighbor_idx)
+                
+        
+        i += 1
+    
+    return cluster
+
+
+def group_dbscan(data, eps, min_pts, groups):
+    clusters = []
+    visited = set()
+    in_group = set()
+    noise = set()
+
+    for point_idx, point in enumerate(data):
+        # for cluster_ in clusters:
+        #     if point_idx in cluster_:
+        #         continue
+        if point_idx in visited:
+            continue
+        visited.add(point_idx)
+        neighbors = find_neighbors(data, point_idx, eps)
+        neighbors = [n for n in neighbors if groups[n] != groups[point_idx]] 
+        if len(neighbors) < min_pts:
+            noise.add(point_idx)
+        else:
+            cluster = expand_cluster(data, point_idx, neighbors, visited, clusters, groups, eps, min_pts)
+            clusters.append(cluster)
+    return clusters, noise
 
 
 def create_uni_label_space_by_text(cfg):
@@ -59,7 +134,8 @@ def create_uni_label_space_by_text(cfg):
     ).tolist()
     predid2name, id2sourceid, id2sourceindex, id2sourcename = [], [], [], []
     names = []
-    for d in datasets:
+    group_ids = []
+    for idx, d in enumerate(datasets):
         meta = MetadataCatalog.get(d)
         stuff_class = meta.stuff_classes
         predid2name.extend([d + '_' + lb_name for lb_name in stuff_class])
@@ -67,6 +143,7 @@ def create_uni_label_space_by_text(cfg):
         id2sourceindex.extend([i for i in range(len(stuff_class))])
         id2sourcename.extend([d for _ in range(len(stuff_class))])
         names.extend([d + '_' + lb_name for lb_name in stuff_class])
+        group_ids.extend([idx for _ in range(len(stuff_class))])
 
     def Get_Predhist_by_llm():
         graph_node_features = gen_graph_node_feature(cfg).float()
@@ -96,17 +173,32 @@ def create_uni_label_space_by_text(cfg):
         return predHist, graph_node_features
 
     predHist, feats = Get_Predhist_by_llm()
+    cnt = 0
+    # for n_cat in num_cats:
+    #     predHist[cnt:cnt+n_cat, cnt:cnt+n_cat] = -2
+    #     cnt+=n_cat
     predHist = 1. - predHist
     predHist[predHist<0] = 0
     print(torch.min(predHist))
-    # print(predHist)
-    # data = np.arange(predHist.shape[0])
-
-    dbscan = DBSCAN(eps=0.105,
-                    min_samples=1,
-                    metric='precomputed')
-    result = dbscan.fit_predict(predHist)
-    print(result)
+    
+    clusters, noise = group_dbscan(predHist, 0.23, 1, group_ids)
+    print(clusters)
+    num = 448
+    # for c in clusters:
+    #     num = num - len(c) + 1
+    # print(num)
+    # print(len(clusters) + len(noise))
+    result = [-1 for _ in range(num)]
+    for idx, cluster in enumerate(clusters):
+        for c in cluster:
+            result[c] = idx
+        
+    st = len(clusters)
+    for idx, r in enumerate(result):
+        if r == -1:
+            result[idx] = st
+            st = st + 1
+    result = np.array(result)
 
     names = []
     for d in datasets:
@@ -179,3 +271,46 @@ def create_uni_label_space_by_text(cfg):
                     print(', {}'.format(dataset_name[d]), end='')
             print()
     print(f'cats: {cnt}')
+    
+from detectron2.engine import (
+    DefaultTrainer,
+    default_argument_parser,
+    default_setup,
+    launch,
+)    
+from detectron2.projects.deeplab import add_deeplab_config, build_lr_scheduler
+from detectron2.config import get_cfg
+from auto_uni_seg import (
+    add_maskformer2_config,
+    add_hrnet_config,
+    add_gnn_config,
+)
+    
+    
+def setup(args):
+    """
+    Create configs and perform basic setups.
+    """
+    cfg = get_cfg()
+    # for poly lr schedule
+    add_deeplab_config(cfg)
+    add_hrnet_config(cfg)
+    add_gnn_config(cfg)
+    # add_maskformer2_config(cfg)
+    cfg.merge_from_file(args.config_file)
+    cfg.merge_from_list(args.opts)
+    cfg.freeze()
+    default_setup(cfg, args)
+    # Setup logger for "mask_former" module
+    # setup_logger(output=cfg.OUTPUT_DIR, distributed_rank=comm.get_rank(), name="mask2former")
+    return cfg    
+
+if __name__ == '__main__':
+    # import mask2former.config
+    # cfg = mask2former.config.get_cfg()
+    # cfg.merge_from_file('configs/mask2former/mask2former_R_50_FPN_1x_coco.yaml')
+    args = default_argument_parser().parse_args()
+    cfg = setup(args)
+    
+    create_uni_label_space_by_text(cfg)
+    # create_uni_label_space_by_text(cfg)

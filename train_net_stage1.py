@@ -195,6 +195,28 @@ class Trainer(DefaultTrainer):
         # Semantic segmentation dataset mapper
         if cfg.INPUT.DATASET_MAPPER_NAME == 'BASE':
             return LoaderAdapter(cfg, aux_mode='train')
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_semantic":
+            mapper = MaskFormerSemanticDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_semantic_sam":
+            mapper = MaskFormerSemanticDatasetMapper_2(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # Panoptic segmentation dataset mapper
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_panoptic":
+            mapper = MaskFormerPanopticDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # Instance segmentation dataset mapper
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_instance":
+            mapper = MaskFormerInstanceDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # coco instance segmentation lsj new baseline
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "coco_instance_lsj":
+            mapper = COCOInstanceNewBaselineDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # coco panoptic segmentation lsj new baseline
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "coco_panoptic_lsj":
+            mapper = COCOPanopticNewBaselineDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
         else:
             mapper = None
             return build_detection_train_loader(cfg, mapper=mapper)
@@ -218,7 +240,8 @@ class Trainer(DefaultTrainer):
         elif 'bdd' in dataset_name:
             dataset_id = 3
         elif 'idd' in dataset_name:
-            dataset_id = 4
+            # dataset_id = 4
+            dataset_id = 1
         elif 'ade' in dataset_name:
             dataset_id = 5
         elif 'coco' in dataset_name:
@@ -226,10 +249,33 @@ class Trainer(DefaultTrainer):
         else:
             dataset_id = 0
         aux_mode = 'test'
-        if '_2' in dataset_name:
-            aux_mode = 'eval'
             
-        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id, datasets_name=[dataset_name])
+        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
+
+    @classmethod
+    def build_eval_loader(cls, cfg, dataset_name):
+        if 'cs' in dataset_name:
+            dataset_id = 0            
+        elif 'mapi' in dataset_name:
+            dataset_id = 1
+        elif 'sunrgbd' in dataset_name:
+            dataset_id = 2
+        elif 'bdd' in dataset_name:
+            dataset_id = 3
+        elif 'idd' in dataset_name:
+            dataset_id = 1
+        elif 'ade' in dataset_name:
+            dataset_id = 5
+        elif 'coco' in dataset_name:
+            dataset_id = 6
+        else:
+            dataset_id = 0
+
+        aux_mode = 'eval'
+            
+        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
+
+        
     @classmethod
     def build_optimizer(cls, cfg, model):
         weight_decay_norm = cfg.SOLVER.WEIGHT_DECAY_NORM

@@ -231,7 +231,6 @@ class HRNet_W48_ARCH(nn.Module):
                 dataset_lbs = int(batched_inputs[0]["dataset_id"])
             except:
                 dataset_lbs = 0
-            dataset_lbs = 6
         
         if self.Pretraining:
             features = self.backbone(images.tensor)
@@ -256,13 +255,8 @@ class HRNet_W48_ARCH(nn.Module):
                 # for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
                     height = input_per_image.get("height", image_size[0])
                     width = input_per_image.get("width", image_size[1])
-                    logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                    # logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                     
-                    logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                    # uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                    
-                    # uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
-                    # # logger.info(f"logit shape:{uni_logit.shape}")
                     if self.dataset_adapter[0] is not None:
                     # logger.info(uni_logits.shape)
                         preds = torch.argmax(logit, dim=0, keepdim=True).long()
@@ -274,8 +268,15 @@ class HRNet_W48_ARCH(nn.Module):
                         
                         output.scatter_(0, preds, 1)
                         logit = output
+                    
+                    logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
+                    # uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                    
+                    uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
+                    # # logger.info(f"logit shape:{uni_logit.shape}")
 
-                    processed_results.append({"sem_seg": logit, "uni_logits":logit})
+
+                    processed_results.append({"sem_seg": logit, "uni_logits":uni_logit})
                 return processed_results
                 # processed_results = []
                 # for logit, input_per_image, image_size, uni_logit in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):

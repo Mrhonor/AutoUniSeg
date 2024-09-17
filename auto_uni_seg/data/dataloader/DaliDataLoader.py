@@ -906,6 +906,7 @@ class LoaderAdapter:
                 self.datasets_name = cfg.DATASETS.TRAIN
             else:
                 self.datasets_name = cfg.DATASETS.TEST
+        print(self.datasets_name)
         
         dataset = [get_detection_dataset_dicts(
             name,

@@ -11,13 +11,13 @@ MODEL:
     STEM_OUT_CHANNELS: 64
     STRIDE_IN_1X1: False
     OUT_FEATURES: ["res2", "res3", "res4", "res5"]
-    NORM: "SyncBN"  # use syncbn for cityscapes dataset
+    NORM: "BN"  # use syncbn for cityscapes dataset
     RES5_MULTI_GRID: [1, 1, 1]  # not used
 DATASETS:
   TRAIN: ("cityscapes_fine_panoptic_train",)
   TEST: ("cityscapes_fine_panoptic_val",)
 SOLVER:
-  IMS_PER_BATCH: 16
+  IMS_PER_BATCH: 2
   BASE_LR: 0.0001
   MAX_ITER: 90000
   WARMUP_FACTOR: 1.0
@@ -42,7 +42,7 @@ INPUT:
   CROP:
     ENABLED: True
     TYPE: "absolute"
-    SIZE: (512, 1024)
+    SIZE: (224, 224)
     SINGLE_CATEGORY_MAX_AREA: 1.0
   COLOR_AUG_SSD: True
   SIZE_DIVISIBILITY: -1

@@ -29,14 +29,15 @@ python coco_rgb_to_id.py
 ```
 root/
   datasets/
-    gtFine/
-      train/
-      val/
-      test/
-    leftImg8bit/
-      train/
-      val/
-      test/
+    cityscapes/
+      gtFine/
+        train/
+        val/
+        test/
+      leftImg8bit/
+        train/
+        val/
+        test/
 ```
 No preprocessing is needed
 

@@ -25,8 +25,8 @@ MODEL:
     with_datasets_aux: False
     init_stage_iters: -1
     isGumbelSoftmax: False
-    GNN_ITERS: 20000
-    SEG_ITERS: 20000
-    FIRST_STAGE_GNN_ITERS: 15000
+    GNN_ITERS: 25
+    SEG_ITERS: 25
+    FIRST_STAGE_GNN_ITERS: 20
     INIT_ADJ_PATH: "output/init_adjacency.pt"
     N_POINTS: 1024

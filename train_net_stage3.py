@@ -156,7 +156,8 @@ class Trainer(DefaultTrainer):
         elif 'bdd' in dataset_name:
             dataset_id = 3
         elif 'idd' in dataset_name:
-            dataset_id = 4
+            # dataset_id = 4
+            dataset_id = 1
         elif 'ade' in dataset_name:
             dataset_id = 5
         elif 'coco' in dataset_name:
@@ -169,6 +170,29 @@ class Trainer(DefaultTrainer):
             aux_mode = 'eval'
             
         return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id, datasets_name=[dataset_name])
+
+    @classmethod
+    def build_eval_loader(cls, cfg, dataset_name):
+        if 'cs' in dataset_name:
+            dataset_id = 0            
+        elif 'mapi' in dataset_name:
+            dataset_id = 1
+        elif 'sunrgbd' in dataset_name:
+            dataset_id = 2
+        elif 'bdd' in dataset_name:
+            dataset_id = 3
+        elif 'idd' in dataset_name:
+            dataset_id = 1
+        elif 'ade' in dataset_name:
+            dataset_id = 5
+        elif 'coco' in dataset_name:
+            dataset_id = 6
+        else:
+            dataset_id = 0
+
+        aux_mode = 'eval'
+            
+        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
 
     @classmethod
     def build_optimizer(cls, cfg, model):

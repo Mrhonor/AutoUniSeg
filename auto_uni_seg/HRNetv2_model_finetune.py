@@ -217,38 +217,52 @@ class HRNet_W48_Finetune_ARCH(nn.Module):
         else:
             processed_results = []
             for logit, input_per_image, image_size, uni_logits in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):
+                
+                # height = images.tensor.shape[2]
+                # width = images.tensor.shape[3]
                 height = input_per_image.get("height", image_size[0])
                 width = input_per_image.get("width", image_size[1])
-                logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                
+                
+                # logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                 logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                
-                # if self.specific_dataset_id >= 0:
-                #     uni_logits = logit
-                # else:
-                #     uni_logits = F.interpolate(uni_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                #     uni_logits = retry_if_cuda_oom(sem_seg_postprocess)(uni_logits, image_size, height, width)
-                
-                if self.dataset_adapter[0] is not None:
-                    # eval for unseen datasets
+                # print(logit.shape)
+                # uni_logits = logit
+                # uni_logits = retry_if_cuda_oom(F.interpolate)(uni_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                uni_logits = retry_if_cuda_oom(sem_seg_postprocess)(uni_logits, image_size, height, width)
+                # torch.cuda.empty_cache()
+                # dataset_lbs = 0
+                # if self.dataset_adapter[dataset_lbs] is not None:
+                #     # logger.info(uni_logits.shape)
+                #     uni_logits = F.softmax(uni_logits, dim=0)
+                #     max_logits, preds = torch.max(uni_logits, dim=0, keepdim=True)
+                #     # preds = torch.argmax(uni_logits, dim=0, keepdim=True).long()
+                #     preds = preds.long()
+                #     # preds[max_logits < 0.3] = 255
+                #     this_mseg_map = self.dataset_adapter[dataset_lbs]
+                #     # logger.info(this_mseg_map)      
+
+                #     preds = this_mseg_map[preds].long()
+                #     output = torch.zeros(int(torch.max(this_mseg_map)), preds.shape[1], preds.shape[2]).cuda()
+                #     # preds[max_logits < 0.3] = int(torch.max(this_mseg_map)) - 1
+                #     output.scatter_(0, preds, 1)
+                #     logit = output
+            
                     
-                    uni_logits = F.softmax(uni_logits, dim=0)
-                    max_logits, preds = torch.max(uni_logits, dim=0, keepdim=True)
-                    # preds = torch.argmax(uni_logits, dim=0, keepdim=True).long()
-                    preds = preds.long()
-                    # preds[max_logits < 0.3] = 255
-                    this_mseg_map = self.dataset_adapter[0]
-                    
-
-                    preds = this_mseg_map[preds].long()
-
-                    output = torch.zeros(int(torch.max(this_mseg_map)), preds.shape[1], preds.shape[2]).cuda()
-                    # preds[max_logits < 0.3] = int(torch.max(this_mseg_map)) - 1
-
-                    output.scatter_(0, preds, 1)
-                    logit = output
                 
+                # logit = F.softmax(logit, dim=0)
+                # max_logits, preds = torch.max(logit, dim=0, keepdim=True)
+                # # preds = torch.argmax(uni_logits, dim=0, keepdim=True).long()
+                # preds = preds.long()
+                # output = torch.zeros(26, preds.shape[1], preds.shape[2]).cuda()
+                # preds[max_logits < 0.3] = 25
+                # output.scatter_(0, preds, 1)
+                # logit = output
+                # logger.info(f"logit shape:{logit.shape}")
                 processed_results.append({"sem_seg": logit, "uni_logits": uni_logits})
-            return processed_results             
+                # processed_results.append({"sem_seg": logit})
+                # processed_results.append({"uni_logits": uni_logits})
+            return processed_results                      
 
     def env_init(self):
         if self.initial == False:

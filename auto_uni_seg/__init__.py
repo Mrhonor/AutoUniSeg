@@ -2,7 +2,7 @@ from . import data  # register all new datasets
 from . import modeling
 
 # config
-from .config import add_maskformer2_config, add_hrnet_config, add_gnn_config
+from .config import add_maskformer2_config, add_hrnet_config, add_gnn_config, add_afformer_config
 
 # dataset loading
 from .data.dataset_mappers.semantic_dataset_mapper import SemanticDatasetMapper
@@ -25,10 +25,13 @@ from .HRNetv2_model import HRNet_W48_ARCH
 from .HRNetv2_model_finetune import HRNet_W48_Finetune_ARCH
 from .HRNetv2_model_finetune_vis import HRNet_W48_Finetune_Vis_ARCH
 from .HRNetv2_model_naive_concat import HRNet_W48_Naive_Concat_ARCH
+from .AFFormer_model import AFFormer_ARCH
+from .mds_maskformer_model import MdsMaskFormer
 
 # evaluation
 from .evaluation.instance_evaluation import InstanceSegEvaluator
 from .data.dataloader.DaliDataLoader import LoaderAdapter
+from .data.dataloader.PanoDataLoader import PanoLoaderAdapter
 from .utils.eval_mseg import eval_for_mseg_datasets
 from .utils.UniDet_learn_unify_label_space import UniDetLearnUnifyLabelSpace
 from .utils.build_bipartite_graph_for_unseen import build_bipartite_graph_for_unseen, build_bipartite_graph_for_unseen_for_manually

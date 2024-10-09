@@ -21,11 +21,14 @@ DATASETS:
   IGNORE_LB: 255
   NUM_UNIFY_CLASS: 45
   CONFIGER: 'configs/ltbgnn_2_datasets_gpt.json'
+  RELATION_GRAPH: 'output/gt_relation_graph_2ds.pickle'
 LOSS:
   OHEM_THRESH: 0.7 
   WITH_SPA_LOSS: True
   WITH_ORTH_LOSS: True
   WITH_ADJ_LOSS: False
+  WITH_RELATION_LOSS: True
+  WITH_GAUSSIAN_LOSS: True
 SOLVER:
   IMS_PER_BATCH: 4
   BASE_LR: 0.0001

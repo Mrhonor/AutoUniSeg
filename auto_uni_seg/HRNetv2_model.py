@@ -15,6 +15,8 @@ from .modeling.GNN.gen_graph_node_feature import gen_graph_node_feature
 from .modeling.GNN.ltbgnn_llama import build_GNN_module
 from .modeling.backbone.hrnet_backbone import HighResolutionNet
 from .modeling.loss.ohem_ce_loss import OhemCELoss, MdsOhemCELoss
+from .modeling.loss.relation_loss import relation_loss
+from .modeling.loss.ow_loss import MdsOWLoss
 from timm.models.layers import trunc_normal_
 import clip
 import logging
@@ -24,6 +26,7 @@ import torch.utils.model_zoo as model_zoo
 import threading
 from .utils.MCMF import MinCostMaxFlow
 from .utils.MCMF_ortools import MinCostMaxFlow_Or
+import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +69,16 @@ class HRNet_W48_ARCH(nn.Module):
                 Pretraining,
                 gnn_iters,
                 seg_iters,
+                max_iters,
                 first_stage_gnn_iters,
                 num_unify_classes,
                 with_spa_loss,
                 loss_weight_dict,
                 with_orth_loss,
                 with_adj_loss,
+                with_relation_loss,
+                with_gaussian_loss,
+                relation_gt_graph,
                 n_points,
                 ):
         super(HRNet_W48_ARCH, self).__init__()
@@ -98,6 +105,7 @@ class HRNet_W48_ARCH(nn.Module):
         
         self.gnn_iters = gnn_iters
         self.seg_iters = seg_iters
+        self.max_iters = max_iters
         self.first_stage_gnn_iters = first_stage_gnn_iters
         self.sec_stage_gnn_iters = gnn_iters - first_stage_gnn_iters
         self.with_datasets_aux = with_datasets_aux
@@ -129,12 +137,20 @@ class HRNet_W48_ARCH(nn.Module):
         self.with_spa_loss = with_spa_loss
         self.with_orth_loss = with_orth_loss
         self.with_adj_loss = with_adj_loss
+        self.with_relation_loss = with_relation_loss
+        self.with_gaussian_loss = with_gaussian_loss
+        
+        self.relation_gt_graph = relation_gt_graph
 
         self.loss_weight_dict = loss_weight_dict
         self.MSE_sum_loss = torch.nn.MSELoss(reduction='sum')
         self.init_gnn_stage = False
         self.target_bipart = None
         self.n_points = n_points
+        
+        if self.with_gaussian_loss:
+            self.gaussian_loss = MdsOWLoss(self.num_unify_classes, self.n_datasets, ignore_index=self.ignore_lb)
+            
         # self.backbone.load_state_dict( model_zoo.load_url("https://download.pytorch.org/models/resnet18-5c106cde.pth"), strict=False)
   
 
@@ -160,14 +176,22 @@ class HRNet_W48_ARCH(nn.Module):
             
         gnn_iters = cfg.MODEL.GNN.GNN_ITERS
         seg_iters = cfg.MODEL.GNN.SEG_ITERS
+        max_iters = cfg.SOLVER.MAX_ITER
         first_stage_gnn_iters = cfg.MODEL.GNN.FIRST_STAGE_GNN_ITERS
         num_unify_classes = cfg.DATASETS.NUM_UNIFY_CLASS
         with_spa_loss = cfg.LOSS.WITH_SPA_LOSS
         with_orth_loss = cfg.LOSS.WITH_ORTH_LOSS  
         with_adj_loss = cfg.LOSS.WITH_ADJ_LOSS 
+        with_relation_loss = cfg.LOSS.WITH_RELATION_LOSS 
+        with_gaussian_loss = cfg.LOSS.WITH_GAUSSIAN_LOSS
+        if with_relation_loss:
+            assert cfg.DATASETS.RELATION_GRAPH is not None, "relation graph is None"
+            with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
+                relation_gt_graph = pickle.load(file)
+        
         n_points = cfg.MODEL.GNN.N_POINTS
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 15, "loss_ce6": 15, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 1, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 15, "loss_ce6": 15, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 3, "loss_ce5": 3, "loss_ce6": 1, "loss_aux0": 1, "loss_aux1": 2, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 3, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
         return {
             'backbone': backbone,
@@ -185,11 +209,15 @@ class HRNet_W48_ARCH(nn.Module):
             "Pretraining": Pretraining,
             "gnn_iters": gnn_iters,
             "seg_iters": seg_iters,
+            "max_iters": max_iters,
             "first_stage_gnn_iters": first_stage_gnn_iters,
             "num_unify_classes": num_unify_classes,
             "with_spa_loss": with_spa_loss,
             "with_orth_loss": with_orth_loss,
             "with_adj_loss": with_adj_loss,
+            "with_relation_loss": with_relation_loss,
+            "with_gaussian_loss": with_gaussian_loss,
+            "relation_gt_graph": relation_gt_graph,
             "loss_weight_dict": loss_weight_dict,
             "n_points": n_points
         }
@@ -237,7 +265,7 @@ class HRNet_W48_ARCH(nn.Module):
             outputs = self.proj_head(features, dataset_lbs)
 
             if self.training:
-                            # bipartite matching-based loss
+                # bipartite matching-based loss
                 losses = self.clac_pretrain_loss(batched_inputs, images, targets, dataset_lbs, outputs)
                 # losses = self.MdsOhemLoss(outputs['logits'], targets, dataset_lbs)
                         
@@ -301,8 +329,9 @@ class HRNet_W48_ARCH(nn.Module):
                 features = self.backbone(images.tensor)
                 outputs = self.proj_head(features, dataset_lbs)
                 unify_prototype, bi_graphs, _, _ = self.gnn_model(self.graph_node_features)
+                adj_matrix = self.gnn_model.adj_matrix
                 self.alter_iters += 1
-                losses = self.calc_loss(images, targets, dataset_lbs, outputs, unify_prototype, bi_graphs, batched_inputs)
+                losses = self.calc_loss(images, targets, dataset_lbs, outputs, unify_prototype, bi_graphs, batched_inputs, adj_matrix)
                     
                 for k in list(losses.keys()):
                     if k in self.loss_weight_dict:
@@ -363,17 +392,25 @@ class HRNet_W48_ARCH(nn.Module):
             losses[f'loss_ce{idx}'] = loss
         return losses
 
-    def calc_loss(self, images, targets, dataset_lbs, outputs, unify_prototype, bi_graphs, batched_inputs):
+    def calc_loss(self, images, targets, dataset_lbs, outputs, unify_prototype, bi_graphs, batched_inputs, adj_matrix):
         losses = {}
         if self.train_seg_or_gnn == self.GNN:
             if self.with_datasets_aux:
                 logits = torch.einsum('bchw, nc -> bnhw', outputs['emb'], unify_prototype[self.total_cats:])
             else:
                 logits = torch.einsum('bchw, nc -> bnhw', outputs['emb'], unify_prototype)
+            
+            if self.with_gaussian_loss:
+                losses['loss_gaussian'] = self.gaussian_loss(outputs['emb'], logits, targets, True, dataset_lbs, False, adj_matrix)
+                
+                                    
         else:
             remap_logits = outputs['logits']
             if self.with_datasets_aux:
                 aux_logits_out = outputs['aux_logits']
+            
+            if self.with_gaussian_loss:
+                losses['loss_gaussian'] = self.gaussian_loss(outputs['emb'], outputs['uni_logits'][0], targets, True, dataset_lbs, True, adj_matrix)
                     
                 # remap_logits = []
         uot_rate = np.min([int(self.alter_iters) / self.first_stage_gnn_iters, 1])
@@ -432,7 +469,6 @@ class HRNet_W48_ARCH(nn.Module):
                     losses[f'loss_aux{i}'] = aux_loss
                     
 
-                    
                 
             if self.with_spa_loss and self.train_seg_or_gnn == self.GNN and self.inFirstGNNStage and self.iters > self.init_gnn_iters:
                 if len(bi_graphs)==2*self.n_datasets:
@@ -460,7 +496,11 @@ class HRNet_W48_ARCH(nn.Module):
                     else:
                         losses['loss_adj'] += base_weight * self.MSE_sum_loss(bi_graphs[2*i + 1][self.target_bipart[i] != 255], self.target_bipart[i][self.target_bipart[i] != 255])
                 
-
+        if self.with_relation_loss and self.train_seg_or_gnn == self.GNN:
+            decay_weight = 1 - self.iters / self.max_iters
+            relation_base_weight = decay_weight / (self.n_datasets * (self.n_datasets - 1) / 2)
+            losses['loss_relation'] = relation_base_weight * relation_loss(adj_matrix, self.datasets_cats, self.relation_gt_graph)
+               
 
         if self.with_orth_loss and self.train_seg_or_gnn == self.GNN:
             if self.with_datasets_aux:
@@ -555,6 +595,8 @@ class HRNet_W48_ARCH(nn.Module):
         self.gnn_model.set_init_stage(False)
         self.gnn_model.frozenAdj(False)
         self.alter_iters = torch.zeros(1)
+        if self.with_gaussian_loss:
+            var = self.gaussian_loss.update()
 
     def change_to_gnn(self):
         logger.info(f"change to gnn_stage")
@@ -566,7 +608,8 @@ class HRNet_W48_ARCH(nn.Module):
         self.proj_head.eval()
         self.gnn_model.train()
         self.alter_iters = torch.zeros(1)
-                
+        if self.with_gaussian_loss:
+            var = self.gaussian_loss.update()                
                     
 
     def prepare_targets(self, targets, images):
@@ -797,7 +840,6 @@ class HRNet_W48_ARCH(nn.Module):
                     losses[f'loss_aux{i}'] = aux_loss
                     
 
-                    
                 
             if self.with_spa_loss and self.train_seg_or_gnn == self.GNN and self.inFirstGNNStage and self.iters > self.init_gnn_iters:
                 if len(bi_graphs)==2*self.n_datasets:

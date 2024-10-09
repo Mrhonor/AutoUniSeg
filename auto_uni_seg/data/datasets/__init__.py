@@ -14,5 +14,6 @@ from . import (
     register_wilddash_v1,
     register_uni,
     register_scannet,
-    
+    register_cityscapes_panoptic_annos,
+    register_coco_panoptic_annos,
 )

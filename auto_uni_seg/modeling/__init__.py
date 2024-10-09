@@ -11,3 +11,6 @@ from .meta_arch.HRNetv2_naive_concat import HRNet_W48_naive_concat
 from .meta_arch.mask_former_head import MaskFormerHead
 from .pixel_decoder.fpn import BasePixelDecoder
 from .pixel_decoder.msdeformattn import MSDeformAttnPixelDecoder
+from .backbone.afformer import afformer_base, afformer_tiny, afformer_small
+from .meta_arch.aff_head import CLS
+from .meta_arch.AFFormer_encoder_decoder import AFFormerEncoderDecoder, AFFormerMdsEncoderDecoder, AFFormerMulheadEncoderDecoder

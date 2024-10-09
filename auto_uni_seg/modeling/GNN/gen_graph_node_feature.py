@@ -776,6 +776,42 @@ def gen_graph_node_feature(cfg):
     print(out_features.shape)
     return out_features 
     
+def gen_text_embedding(cfg):
+    configer = Configer(configs=cfg.DATASETS.CONFIGER)
+    n_datasets = configer.get("n_datasets")
+    save_pth = 'output/'
+    if not osp.exists(save_pth): os.makedirs(save_pth)
+    
+    file_name = save_pth + 'text_features'
+    dataset_names = []
+    for i in range(0, configer.get('n_datasets')):
+        # file_name += '_'+str(configer.get('dataset'+str(i+1), 'data_reader'))
+        dataset_names.append(str(configer.get('dataset'+str(i+1), 'data_reader')))
+    
+    # file_name += '.pt'
+    out_features = []
+    for i in range(0, n_datasets):
+        this_file_name = file_name + f'_{dataset_names[i]}.pt' 
+        if osp.exists(this_file_name):
+            this_graph_node_features = torch.load(this_file_name, map_location='cpu')
+
+            out_features.append(this_graph_node_features)
+        else:
+            
+            print(f'gen_graph_node_featuer: {i}')
+            # img_feature_vecs = gen_image_features(configer, i)
+            # img_feat_tensor = torch.cat(img_feature_vecs, dim=0)
+            
+            text_feature_vecs = get_encode_lb_vec_clip(configer, i)[0].cpu()
+            # this_graph_node_features = torch.cat([text_feature_vecs, img_feat_tensor], dim=1)
+            torch.save(text_feature_vecs.clone(), this_file_name)
+
+            out_features.append(text_feature_vecs)
+    
+    # out_features = torch.cat(out_features, dim=0)
+
+    return out_features 
+
                 
 def gen_graph_node_feature_clip(cfg):
     configer = Configer(configs=cfg.DATASETS.CONFIGER)

@@ -54,6 +54,7 @@ from auto_uni_seg import (
     add_maskformer2_config,
     add_hrnet_config,
     add_gnn_config,
+    add_afformer_config,
     LoaderAdapter,
     build_bipartite_graph_for_unseen,
     eval_for_mseg_datasets,
@@ -243,7 +244,7 @@ class Trainer(DefaultTrainer):
             # dataset_id = 4
             dataset_id = 1
         elif 'ade' in dataset_name:
-            dataset_id = 5
+            dataset_id = 2
         elif 'coco' in dataset_name:
             dataset_id = 6
         else:
@@ -265,7 +266,7 @@ class Trainer(DefaultTrainer):
         elif 'idd' in dataset_name:
             dataset_id = 1
         elif 'ade' in dataset_name:
-            dataset_id = 5
+            dataset_id = 2
         elif 'coco' in dataset_name:
             dataset_id = 6
         else:
@@ -382,6 +383,7 @@ def setup(args):
     # for poly lr schedule
     add_deeplab_config(cfg)
     add_hrnet_config(cfg)
+    add_afformer_config(cfg)
     add_maskformer2_config(cfg)
     add_gnn_config(cfg)
     cfg.merge_from_file(args.config_file)
@@ -421,6 +423,7 @@ def main(args):
     
     trainer = Trainer(cfg)
     trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
+    # trainer.register_hooks([iter_info_hook()])
     trainer.resume_or_load(resume=args.resume)
     return trainer.train()
 

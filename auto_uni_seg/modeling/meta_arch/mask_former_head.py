@@ -93,6 +93,8 @@ class MaskFormerHead(nn.Module):
             transformer_predictor_in_channels = cfg.MODEL.SEM_SEG_HEAD.MASK_DIM
         elif cfg.MODEL.MASK_FORMER.TRANSFORMER_IN_FEATURE == "multi_scale_pixel_decoder":  # for maskformer2
             transformer_predictor_in_channels = cfg.MODEL.SEM_SEG_HEAD.CONVS_DIM
+        elif cfg.MODEL.MASK_FORMER.TRANSFORMER_IN_FEATURE == "mds_transformer_encoder":  # for maskformer2
+            transformer_predictor_in_channels = cfg.MODEL.SEM_SEG_HEAD.CONVS_DIM
         else:
             transformer_predictor_in_channels = input_shape[cfg.MODEL.MASK_FORMER.TRANSFORMER_IN_FEATURE].channels
 
@@ -112,13 +114,15 @@ class MaskFormerHead(nn.Module):
             ),
         }
 
-    def forward(self, features, mask=None):
-        return self.layers(features, mask)
+    def forward(self, features, mask=None, dataset_ids=None):
+        return self.layers(features, mask, dataset_ids)
 
-    def layers(self, features, mask=None):
+    def layers(self, features, mask=None, dataset_ids=None):
         mask_features, transformer_encoder_features, multi_scale_features = self.pixel_decoder.forward_features(features)
         if self.transformer_in_feature == "multi_scale_pixel_decoder":
             predictions = self.predictor(multi_scale_features, mask_features, mask)
+        elif self.transformer_in_feature == "mds_transformer_encoder":
+            predictions = self.predictor(multi_scale_features, mask_features, mask, dataset_ids)
         else:
             if self.transformer_in_feature == "transformer_encoder":
                 assert (

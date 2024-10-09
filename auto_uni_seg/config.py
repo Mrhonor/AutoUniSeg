@@ -84,10 +84,13 @@ def add_gnn_config(cfg):
     cfg.MODEL.GNN.N_POINTS = 12455
     cfg.MODEL.GNN.dataset_embedding = False
     
-    
     cfg.LOSS.WITH_SPA_LOSS = True
     cfg.LOSS.WITH_ORTH_LOSS = False
     cfg.LOSS.WITH_ADJ_LOSS = False
+    cfg.LOSS.WITH_RELATION_LOSS = False
+    cfg.LOSS.WITH_GAUSSIAN_LOSS = False
+
+    cfg.DATASETS.RELATION_GRAPH = None
 
     
 
@@ -133,6 +136,7 @@ def add_maskformer2_config(cfg):
     cfg.MODEL.MASK_FORMER.PRE_NORM = False
 
     cfg.MODEL.MASK_FORMER.HIDDEN_DIM = 256
+    cfg.MODEL.MASK_FORMER.OUT_FEAT_DIM = 512
     cfg.MODEL.MASK_FORMER.NUM_OBJECT_QUERIES = 100
 
     cfg.MODEL.MASK_FORMER.TRANSFORMER_IN_FEATURE = "res5"
@@ -200,3 +204,6 @@ def add_maskformer2_config(cfg):
     # Importance sampling parameter for PointRend point sampling during training. Parametr `beta` in
     # the original paper.
     cfg.MODEL.MASK_FORMER.IMPORTANCE_SAMPLE_RATIO = 0.75
+
+def add_afformer_config(cfg):
+    cfg.MODEL.AFFORMER_CONFIG = None

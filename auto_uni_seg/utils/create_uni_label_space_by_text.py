@@ -18,7 +18,7 @@ import datetime
 from detectron2.utils.logger import log_every_n_seconds
 from detectron2.data import MetadataCatalog
 import logging
-from auto_uni_seg.modeling.transformer_decoder.GNN.gen_graph_node_feature import gen_graph_node_feature
+from auto_uni_seg.modeling.GNN.gen_graph_node_feature import gen_graph_node_feature
 from sklearn.cluster import DBSCAN  # DBSCAN API
 
 

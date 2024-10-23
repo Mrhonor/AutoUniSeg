@@ -24,3 +24,9 @@ pip install -e .
 pip install -r requirements.txt
 
 ```
+
+### Model checkpoint download
+
+|  Model   | Cityscapes | Mapillary | SUNRGBD | BDD100k | IDD | ADE20K | COCO  | Download |
+|  ----  | ----  | ----  |----  |----  |----  |----  |----  |----  |
+| 7ds | 80.7  | 43.7 | 47.5 | 65.5 | 68.6 | 42.0 | 46.7 | [Google Drive](https://drive.google.com/file/d/1TajfQSvGVUSrOxpVT8Vgtc3HM8inlUFo/view?usp=sharing)

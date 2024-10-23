@@ -37,3 +37,7 @@ python train_net_stage3.py \
   --config-file configs/7_datasets/train_final_stage.yaml \
   --eval-only MODEL.WEIGHTS /path/to/checkpoint_file
 ```
+
+### Constructed Graph Visualized
+Below is a visualization of the unified label space created on seven datasets.
+![](img/Graph.png)

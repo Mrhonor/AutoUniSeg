@@ -1,0 +1,150 @@
+A image of flag from ADE20K datasets: A piece of fabric, typically rectangular, attached to a pole or structure, used as a symbol for a nation, organization, or signal. Includes both the flag and its pole.
+A image of wall from ADE20K datasets: A vertical structure, typically solid, that defines the boundary of a room, building, or space. Includes interior and exterior walls but excludes windows, doors, and attached objects like pictures.
+A image of building, edifice from ADE20K datasets: A permanent structure with walls and a roof, intended for human habitation or occupation. Includes houses, offices, and skyscrapers but excludes individual rooms or apartments inside.
+A image of sky from ADE20K datasets: The open space above the earth, usually seen as a background in outdoor scenes. Includes all variations like clear skies, clouds, or atmospheric effects.
+A image of floor, flooring from ADE20K datasets: The horizontal surface of a room on which people walk. This label includes the material used (wood, tile, etc.) but excludes objects placed on it, like rugs or carpets.
+A image of tree from ADE20K datasets: A tall perennial plant with a trunk, branches, and leaves. Includes the entire tree, from roots to canopy, but excludes individual leaves or fallen branches.
+A image of ceiling from ADE20K datasets: The overhead interior surface of a room. Includes the structure and any attached objects like lights or fans, but excludes the walls or floor.
+A image of road, route from ADE20K datasets: A paved or unpaved surface used by vehicles for transportation. This label includes all lanes and markings but excludes sidewalks, curbs, or adjacent areas.
+A image of bed from ADE20K datasets: A piece of furniture used for sleeping, typically consisting of a frame, mattress, and possibly headboard or footboard. This label includes bedding but excludes pillows.
+A image of windowpane, window from ADE20K datasets: A transparent or translucent opening in a wall, typically made of glass, that allows light or air into a building. Includes the frame and glass but excludes any coverings like curtains or blinds.
+A image of grass from ADE20K datasets: Low-growing vegetation, typically covering the ground. Includes lawns and natural grassy areas but excludes other plants or flowers.
+A image of cabinet from ADE20K datasets: A furniture piece with shelves or drawers used for storage, typically found in kitchens or bathrooms. Includes both wall-mounted and standalone units.
+A image of sidewalk, pavement from ADE20K datasets: A paved path alongside a road, designated for pedestrians. Excludes the road or curb but includes any markings separating it from the road.
+A image of person, individual, someone, somebody, mortal, soul from ADE20K datasets: A human being present in the scene. This label includes the entire person but excludes their clothing or accessories.
+A image of earth, ground from ADE20K datasets: The solid surface of the earth, including soil, dirt, or grass-covered areas. Excludes paved surfaces like roads or sidewalks.
+A image of door, double door from ADE20K datasets: A movable barrier that allows entry or exit from a room or building. Includes the door frame but excludes windows or other attached objects.
+A image of table from ADE20K datasets: A piece of furniture with a flat surface supported by legs, used for dining, working, or placing objects. Includes all types of tables but excludes desks.
+A image of mountain, mount from ADE20K datasets: A large natural elevation of the earth's surface, typically rising steeply. Includes rocky formations and highland areas but excludes individual rocks or stones.
+A image of plant, flora, plant life from ADE20K datasets: Any living organism in the plant kingdom, excluding trees and grass. Includes flowers, shrubs, and houseplants.
+A image of curtain, drape, drapery, mantle, pall from ADE20K datasets: A fabric or material hung to cover windows or divide spaces. Includes the curtain rod and material but excludes blinds or the window itself.
+A image of chair from ADE20K datasets: A piece of furniture for sitting, typically with a backrest. Includes all types of chairs but excludes sofas or stools.
+A image of car, auto, automobile, machine, motorcar from ADE20K datasets: A four-wheeled motor vehicle used for transportation. Includes passenger cars and smaller vehicles but excludes trucks or buses.
+A image of water from ADE20K datasets: A liquid substance, typically seen in natural environments like rivers, lakes, or oceans. Includes both still and moving water sources.
+A image of painting, picture from ADE20K datasets: A visual representation, such as a painting or photograph, mounted on a wall. Includes the artwork and frame but excludes any supporting wall.
+A image of sofa, couch, lounge from ADE20K datasets: A large, cushioned seating piece designed for multiple people. Includes all variations of sofas and couches but excludes armchairs or benches.
+A image of shelf from ADE20K datasets: A horizontal surface attached to a wall or furniture, used to hold or display objects. Includes all types of shelving units but excludes enclosed cabinets.
+A image of house from ADE20K datasets: A residential building designed for people to live in. Includes the entire structure but excludes the surrounding environment or any attached furniture.
+A image of sea from ADE20K datasets: A large body of saltwater, smaller than an ocean but larger than a lake. Includes coastal areas but excludes rivers or man-made bodies of water.
+A image of mirror from ADE20K datasets: A reflective surface, typically mounted on walls or furniture, used to view one's reflection. Includes the mirror frame but excludes the surface it is mounted on.
+A image of rug, carpet, carpeting from ADE20K datasets: A soft floor covering, either fitted or placed loosely on the ground. Includes both small and large floor coverings but excludes mats or the floor itself.
+A image of field from ADE20K datasets: A large open area of land, typically covered with grass or crops. Includes agricultural fields and natural meadows but excludes forests or urban areas.
+A image of armchair from ADE20K datasets: A chair with armrests, designed for individual seating. Includes cushioned or non-cushioned versions but excludes sofas.
+A image of seat from ADE20K datasets: A place to sit, including chairs, benches, or other seating furniture. Excludes specific categories like armchairs or sofas.
+A image of fence, fencing from ADE20K datasets: A barrier, typically made of wood, metal, or wire, used to enclose or divide spaces. Includes all types of fences but excludes walls.
+A image of desk from ADE20K datasets: A table designed specifically for working, often with drawers or shelves. Includes office desks and student desks but excludes other tables.
+A image of rock, stone from ADE20K datasets: A naturally occurring solid mineral material, typically found in outdoor environments. Includes large boulders and small rocks but excludes mountains or cliffs.
+A image of wardrobe, closet, press from ADE20K datasets: A furniture piece or enclosed space used for storing clothes. Includes built-in closets or standalone wardrobes but excludes dressers.
+A image of lamp from ADE20K datasets: A light fixture, either standing or mounted, used for illumination. Includes table lamps, floor lamps, and attached fixtures but excludes ceiling lights or chandeliers.
+A image of bathtub, bathing tub, bath, tub from ADE20K datasets: A large container used for bathing, typically found in bathrooms. Includes both built-in and freestanding tubs but excludes showers.
+A image of railing, rail from ADE20K datasets: A barrier or guard, typically made of metal or wood, found on stairs, balconies, or walkways. Includes handrails but excludes fences.
+A image of cushion from ADE20K datasets: A soft padding, typically used on furniture for comfort or decoration. Includes both seat cushions and decorative pillows but excludes bedding pillows.
+A image of base, pedestal, stand from ADE20K datasets: A support structure used to hold or elevate objects. Includes stands for lamps, statues, or electronics but excludes furniture pieces like tables.
+A image of box from ADE20K datasets: A container, typically made of cardboard, plastic, or wood, used for storage or transportation. Includes open or closed boxes but excludes the items stored inside.
+A image of column, pillar from ADE20K datasets: A vertical structural element, typically cylindrical, used to support buildings or decorative purposes. Includes architectural columns but excludes walls.
+A image of signboard, sign from ADE20K datasets: A flat panel or structure used to display information or advertisements. Includes street signs, billboards, and other signage but excludes electronic displays.
+A image of chest of drawers, chest, bureau, dresser from ADE20K datasets: A furniture piece with multiple drawers used for storage, typically of clothes. Includes the entire structure but excludes objects placed on top.
+A image of counter from ADE20K datasets: A flat surface in kitchens or bathrooms used for preparing food or placing objects. Includes built-in countertops but excludes free-standing tables.
+A image of sand from ADE20K datasets: Loose granular material, typically found on beaches or deserts. Includes natural sand deposits but excludes dirt or gravel.
+A image of sink from ADE20K datasets: A basin used for washing, typically found in kitchens or bathrooms. Includes the faucet and basin but excludes countertops or walls.
+A image of skyscraper from ADE20K datasets: A very tall building, typically in urban areas. Includes the entire structure but excludes surrounding buildings or environments.
+A image of fireplace, hearth, open fireplace from ADE20K datasets: A built-in structure in a room for containing a fire, typically found in living spaces for heating. Includes the surrounding hearth and chimney but excludes standalone heaters.
+A image of refrigerator, icebox from ADE20K datasets: A kitchen appliance used to store food at low temperatures. Includes the entire unit but excludes any food or drinks inside.
+A image of grandstand, covered stand from ADE20K datasets: A seating area with a roof, typically found in sports venues, where spectators can sit and watch events. Includes both the seats and covering.
+A image of path from ADE20K datasets: A narrow, typically unpaved trail for walking or cycling. Includes natural or constructed paths but excludes roads or sidewalks.
+A image of stairs, steps from ADE20K datasets: A set of flat surfaces, or steps, allowing people to move from one level to another in a building. Includes both indoor and outdoor staircases but excludes escalators.
+A image of runway from ADE20K datasets: A long, paved surface on which airplanes take off and land. Excludes taxiways or other airport structures.
+A image of case, display case, showcase, vitrine from ADE20K datasets: A glass or transparent structure used for displaying objects, often in stores or museums. Includes all types of display cases but excludes the objects inside.
+A image of pool table, billiard table, snooker table from ADE20K datasets: A table designed for playing cue sports, such as pool or billiards. Includes the playing surface and frame but excludes accessories like cues or balls.
+A image of pillow from ADE20K datasets: A soft cushion used for supporting the head while sleeping or as a decorative item on furniture. Excludes cushions used for seating.
+A image of screen door, screen from ADE20K datasets: A door made of a mesh material to allow air circulation while keeping insects out. Includes both the frame and mesh.
+A image of stairway, staircase from ADE20K datasets: A series of steps within a building or outdoor space, allowing for vertical movement. Includes handrails or bannisters attached to the structure but excludes escalators.
+A image of river from ADE20K datasets: A large natural stream of water flowing towards an ocean, sea, or another river. Excludes lakes or artificial waterways.
+A image of bridge, span from ADE20K datasets: A structure built over obstacles like water or roads to allow for crossing. Includes both pedestrian and vehicular bridges but excludes tunnels.
+A image of bookcase from ADE20K datasets: A piece of furniture with shelves used to store books. Includes all types of shelving units but excludes individual books.
+A image of blind, screen from ADE20K datasets: A window covering, typically made of slats or fabric, used to block light or provide privacy. Excludes curtains or drapes.
+A image of coffee table, cocktail table from ADE20K datasets: A low table, typically placed in front of a sofa or seating area, used to hold drinks or decorative items. Includes all types of low tables but excludes dining tables.
+A image of toilet, can, commode, crapper, pot, potty, stool, throne from ADE20K datasets: A sanitary fixture used for the disposal of human waste. Includes the entire fixture but excludes additional features like bidets or separate sinks.
+A image of flower from ADE20K datasets: The reproductive structure of flowering plants. Includes both individual flowers and floral arrangements but excludes other parts of the plant like stems or leaves.
+A image of book from ADE20K datasets: A collection of written or printed pages bound together. Includes all types of books but excludes electronic or digital copies.
+A image of hill from ADE20K datasets: A natural elevation of the earth's surface, smaller than a mountain. Includes grass or vegetation on the surface but excludes man-made mounds.
+A image of bench from ADE20K datasets: A long seat, typically made of wood or metal, used for seating multiple people. Includes both outdoor and indoor benches but excludes individual chairs or sofas.
+A image of countertop from ADE20K datasets: A flat surface in kitchens or bathrooms used for preparing food or placing objects. Includes built-in countertops but excludes movable furniture like tables.
+A image of stove, kitchen stove, range, kitchen range, cooking stove from ADE20K datasets: An appliance used for cooking food, typically featuring burners and an oven. Includes all components but excludes accessories like pots or pans.
+A image of palm, palm tree from ADE20K datasets: A type of tree with long, fan-like leaves, commonly found in tropical regions. Includes the entire tree but excludes individual leaves or fruit.
+A image of kitchen island from ADE20K datasets: A freestanding counter in a kitchen, typically used for preparing food or storage. Includes any attached sinks or stovetops.
+A image of computer, computing machine, computing device, data processor, electronic computer, information processing system from ADE20K datasets: An electronic device used for processing data, executing programs, and communication. Includes desktop computers, laptops, and servers but excludes accessories like monitors or keyboards.
+A image of swivel chair from ADE20K datasets: A chair that rotates 360 degrees, typically used in office settings. Includes both cushioned and non-cushioned versions.
+A image of boat from ADE20K datasets: A watercraft used for transportation on rivers, lakes, or oceans. Includes all sizes of boats but excludes ships.
+A image of bar from ADE20K datasets: A long counter where drinks are served, typically found in pubs, restaurants, or homes. Includes stools or seating areas attached to the bar.
+A image of arcade machine from ADE20K datasets: A coin-operated machine for playing video games, typically found in public arcades. Includes the screen, controls, and casing but excludes handheld gaming devices.
+A image of hovel, hut, hutch, shack, shanty from ADE20K datasets: A small, simple, often poorly constructed shelter. Includes temporary or makeshift structures but excludes larger, permanent buildings.
+A image of bus, autobus, coach, charabanc, double-decker, jitney, motorbus, motorcoach, omnibus, passenger vehicle from ADE20K datasets: A large motor vehicle used for public transportation. Includes school buses, city buses, and coaches but excludes smaller passenger vehicles like cars or vans.
+A image of towel from ADE20K datasets: A piece of absorbent fabric used for drying or wiping. Includes bath towels, hand towels, and kitchen towels but excludes other fabrics like blankets.
+A image of light, light source from ADE20K datasets: Any device or fixture used to illuminate a space. Includes lamps, overhead lights, and outdoor lighting but excludes natural light sources like the sun.
+A image of truck, motortruck from ADE20K datasets: A motor vehicle designed to transport cargo. Includes all types of trucks, from small pickups to large freight vehicles.
+A image of tower from ADE20K datasets: A tall structure, either freestanding or part of a larger building, used for communication, observation, or as an architectural feature. Includes both functional and decorative towers.
+A image of chandelier, pendant, pendent from ADE20K datasets: A decorative hanging light fixture, typically found in ceilings. Includes all types of chandeliers and hanging lights but excludes ceiling fans.
+A image of awning, sunshade, sunblind from ADE20K datasets: A covering attached to the exterior of a building, typically used to provide shade or shelter. Includes retractable or fixed awnings but excludes indoor blinds.
+A image of streetlight, street lamp from ADE20K datasets: A lamp post placed along roads or streets to provide illumination at night. Includes the pole and light fixture but excludes other types of outdoor lighting.
+A image of booth, cubicle, stall, kiosk from ADE20K datasets: A small, enclosed or semi-enclosed structure used for business or display purposes. Includes ticket booths, market stalls, and kiosks but excludes larger buildings.
+A image of television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box from ADE20K datasets: An electronic device used to receive and display video broadcasts. Includes both modern flat-screen TVs and older CRT models.
+A image of airplane, aeroplane, plane from ADE20K datasets: A powered flying vehicle with fixed wings. Includes all types of airplanes but excludes helicopters or other flying vehicles.
+A image of dirt track from ADE20K datasets: An unpaved road or path, often used for racing or recreational driving. Includes natural surfaces like gravel or soil but excludes paved roads.
+A image of apparel, wearing apparel, dress, clothes from ADE20K datasets: Items worn on the body, including clothing and accessories. Includes shirts, pants, dresses, and outerwear but excludes footwear.
+A image of pole from ADE20K datasets: A long, cylindrical object, typically made of metal or wood, used to support structures or equipment. Includes utility poles, flagpoles, and light poles but excludes handheld tools or weapons.
+A image of land, ground, soil from ADE20K datasets: The solid surface of the earth, including soil, rocks, and vegetation. Excludes bodies of water like lakes or rivers.
+A image of bannister, banister, balustrade, balusters, handrail from ADE20K datasets: A railing along stairs or balconies, designed to provide support. Includes all components like the handrail and balusters but excludes walls or steps.
+A image of escalator, moving staircase, moving stairway from ADE20K datasets: A mechanized stairway that moves people between different levels of a building. Includes both indoor and outdoor escalators but excludes regular staircases.
+A image of ottoman, pouf, pouffe, puff, hassock from ADE20K datasets: A padded piece of furniture, typically used as a footrest or extra seating. Includes all variations of ottomans but excludes chairs or sofas.
+A image of bottle from ADE20K datasets: A container, typically made of glass or plastic, used to hold liquids. Includes bottles of all sizes but excludes other types of containers like cans.
+A image of buffet, counter, sideboard from ADE20K datasets: A piece of furniture used for serving food or storing dishes, typically found in dining rooms. Includes all variations of buffets but excludes kitchen countertops.
+A image of poster, posting, placard, notice, bill, card from ADE20K datasets: A printed or digital sign displayed to convey information or advertisements. Includes all types of posters and billboards but excludes other forms of media like pamphlets.
+A image of stage from ADE20K datasets: A raised platform used for performances, presentations, or speeches. Includes both permanent and temporary stages but excludes surrounding seating areas.
+A image of van from ADE20K datasets: A large, box-shaped vehicle used for transporting goods or people. Includes all types of vans, from cargo vans to passenger vans but excludes trucks or buses.
+A image of ship from ADE20K datasets: A large watercraft designed for maritime travel or transport over long distances. Includes all types of ships but excludes smaller boats or submarines.
+A image of fountain from ADE20K datasets: A structure, often decorative, that expels water into the air. Includes all types of water fountains but excludes natural water features like waterfalls.
+A image of conveyer belt, conveyor belt, conveyer, conveyor, transporter from ADE20K datasets: A continuously moving belt used in factories or airports to transport objects from one point to another. Includes the entire mechanism but excludes the items being transported.
+A image of canopy from ADE20K datasets: A covering, typically made of fabric or other materials, that provides shade or shelter. Includes both permanent and temporary structures but excludes awnings attached to buildings.
+A image of washer, automatic washer, washing machine from ADE20K datasets: A household appliance used to clean clothes and textiles. Includes all types of washing machines but excludes dryers.
+A image of plaything, toy from ADE20K datasets: An object used by children or adults for play and entertainment. Includes all types of toys but excludes electronic games or devices.
+A image of swimming pool, swimming bath, natatorium from ADE20K datasets: A structure filled with water, typically for swimming or recreational use. Includes indoor and outdoor pools but excludes natural bodies of water like lakes or rivers.
+A image of stool from ADE20K datasets: A seat without a backrest, typically used for short periods of sitting. Includes bar stools, footstools, and step stools but excludes chairs with backrests.
+A image of barrel, cask from ADE20K datasets: A cylindrical container, typically made of wood or metal, used for storing liquids or goods. Includes all sizes but excludes other types of containers like bottles or crates.
+A image of basket, handbasket from ADE20K datasets: A container, typically made of woven materials, used to carry or store items. Includes all types of baskets but excludes bags or boxes.
+A image of waterfall, falls from ADE20K datasets: A natural feature where water flows over a vertical drop in a stream or river. Includes all types of waterfalls but excludes man-made fountains.
+A image of tent, collapsible shelter from ADE20K datasets: A temporary shelter made of fabric or other lightweight materials, supported by poles and ropes. Includes all types of tents but excludes permanent shelters or buildings.
+A image of bag from ADE20K datasets: A flexible container used to carry or store items. Includes all types of bags like backpacks, purses, and shopping bags but excludes rigid containers like boxes.
+A image of minibike, motorbike from ADE20K datasets: A small, lightweight motorcycle, typically used for short distances or recreational riding. Includes all types of motorbikes but excludes bicycles or larger motorcycles.
+A image of cradle from ADE20K datasets: A small bed, often with rocking capability, used for infants. Includes both stationary and rocking cradles but excludes other types of beds.
+A image of oven from ADE20K datasets: A kitchen appliance used for baking, roasting, or heating food. Includes electric, gas, and microwave ovens but excludes stovetops.
+A image of ball from ADE20K datasets: A spherical object used in various sports and games. Includes all types of balls, from small rubber balls to larger soccer or basketballs.
+A image of food, solid food from ADE20K datasets: Any substance consumed for nutritional value, typically in solid form. Includes fruits, vegetables, meats, and grains but excludes liquids or beverages.
+A image of step, stair from ADE20K datasets: A single horizontal surface in a staircase, used to ascend or descend. Includes both indoor and outdoor steps but excludes escalators.
+A image of tank, storage tank from ADE20K datasets: A large container used to hold liquids or gases. Includes all types of tanks, from water tanks to fuel storage tanks, but excludes smaller containers like bottles or barrels.
+A image of trade name, brand name, brand, marque from ADE20K datasets: A commercial name used to identify and differentiate products or services. Includes all types of trademarks and logos but excludes the actual products.
+A image of microwave, microwave oven from ADE20K datasets: A kitchen appliance that uses electromagnetic radiation to heat or cook food. Includes all types of microwave ovens but excludes conventional ovens.
+A image of pot, flowerpot from ADE20K datasets: A container, typically made of clay or plastic, used for growing plants. Includes all types of pots but excludes vases or planters.
+A image of animal, animate being, beast, brute, creature, fauna from ADE20K datasets: Any living organism belonging to the kingdom Animalia. Includes all animals, from domestic pets to wild creatures but excludes plants or fungi.
+A image of bicycle, bike, wheel, cycle from ADE20K datasets: A human-powered vehicle with two wheels, driven by pedals. Includes all types of bicycles but excludes motorbikes or tricycles.
+A image of lake from ADE20K datasets: A large, natural body of water surrounded by land. Includes all sizes of lakes but excludes artificial reservoirs or ponds.
+A image of dishwasher, dish washer, dishwashing machine from ADE20K datasets: A household appliance used to clean dishes and utensils. Includes all types of dishwashers but excludes hand-washing sinks.
+A image of screen, silver screen, projection screen from ADE20K datasets: A surface onto which images or videos are projected. Includes all types of projection screens but excludes digital monitors or displays.
+A image of blanket, cover from ADE20K datasets: A large piece of fabric used for warmth or as a covering. Includes all types of blankets but excludes sheets or towels.
+A image of sculpture from ADE20K datasets: A three-dimensional work of art, typically made from materials like stone, metal, or clay. Includes all types of sculptures but excludes two-dimensional art like paintings.
+A image of hood, exhaust hood from ADE20K datasets: A device placed over a stove or cooking area to remove smoke, steam, and odors. Includes all types of kitchen hoods but excludes other types of ventilation systems.
+A image of sconce from ADE20K datasets: A wall-mounted light fixture. Includes both decorative and functional sconces but excludes ceiling-mounted lights.
+A image of vase from ADE20K datasets: A container, typically used to hold flowers or as a decorative object. Includes all types of vases but excludes pots or planters.
+A image of traffic light, traffic signal, stoplight from ADE20K datasets: A signal system used to control vehicle and pedestrian traffic at intersections. Includes all types of traffic lights but excludes signs or road markings.
+A image of tray from ADE20K datasets: A flat, shallow container used to carry or serve food or drinks. Includes all types of trays but excludes larger serving dishes or plates.
+A image of ashcan, trash can, garbage can, wastebin, ash bin, ash-bin, ashbin, dustbin, trash barrel, trash bin from ADE20K datasets: A container used for holding waste and refuse. Includes all types of trash cans but excludes recycling bins.
+A image of fan from ADE20K datasets: A device used to create airflow and cool a space. Includes ceiling fans, portable fans, and exhaust fans but excludes air conditioning units.
+A image of pier, wharf, wharfage, dock from ADE20K datasets: A structure extending into a body of water, used for docking boats or loading cargo. Includes all types of piers and docks but excludes boat ramps.
+A image of crt screen from ADE20K datasets: A display screen using cathode-ray tube technology, typically found in older televisions and computer monitors. Excludes modern flat-panel displays.
+A image of plate from ADE20K datasets: A flat dish used for serving or eating food. Includes all types of plates but excludes bowls or cups.
+A image of monitor, monitoring device from ADE20K datasets: An electronic device used to display visual information, typically part of a computer system. Includes all types of computer monitors but excludes televisions.
+A image of bulletin board, notice board from ADE20K datasets: A surface used for posting public notices, announcements, or messages. Includes both physical and digital bulletin boards but excludes posters.
+A image of shower from ADE20K datasets: A fixture used for bathing, typically with a stream of water falling from above. Includes both indoor and outdoor showers but excludes bathtubs.
+A image of radiator from ADE20K datasets: A heating device that transfers heat to a room, typically through convection. Includes both wall-mounted and freestanding radiators but excludes air conditioning units.
+A image of glass, drinking glass from ADE20K datasets: A transparent container used for drinking beverages. Includes all types of glasses but excludes cups made from other materials like plastic or ceramic.
+A image of clock from ADE20K datasets: A device used to measure and display time. Includes both analog and digital clocks but excludes wristwatches or other portable timepieces.

@@ -11,6 +11,7 @@ from detectron2.modeling import BACKBONE_REGISTRY, Backbone
 from detectron2.modeling import META_ARCH_REGISTRY, build_backbone, build_sem_seg_head
 from detectron2.config import configurable
 from ..backbone.afformer import afformer_tiny, afformer_base, afformer_small
+from timm.models.layers import trunc_normal_
 
 def add_prefix(inputs, prefix):
     """Add prefix for dict.
@@ -562,11 +563,11 @@ class AFFormerMdsEncoderDecoder(Backbone):
 
     def forward_dummy(self, img):
         """Dummy forward function."""
-        seg_logit = self.encode_decode(img, None)
+        seg_logit = self.encode_decode(img, None, dataset_ids)
 
         return seg_logit
 
-    def forward(self, img, img_metas, gt_semantic_seg, return_loss=True, **kwargs):
+    def forward(self, img, img_metas, gt_semantic_seg, dataset_ids, return_loss=True, **kwargs):
         """Forward function for training.
 
         Args:
@@ -599,10 +600,10 @@ class AFFormerMdsEncoderDecoder(Backbone):
 
             return losses
         else:
-            return self.encode_decode(img, img_metas)
+            return self.encode_decode(img, img_metas, dataset_ids)
 
     # TODO refactor
-    def slide_inference(self, img, img_meta, rescale):
+    def slide_inference(self, img, img_meta, rescale, dataset_ids):
         """Inference by sliding-window with overlap.
 
         If h_crop > h_img or w_crop > w_img, the small patch will be used to
@@ -626,7 +627,7 @@ class AFFormerMdsEncoderDecoder(Backbone):
                 y1 = max(y2 - h_crop, 0)
                 x1 = max(x2 - w_crop, 0)
                 crop_img = img[:, :, y1:y2, x1:x2]
-                crop_seg_logit = self.encode_decode(crop_img, img_meta)
+                crop_seg_logit = self.encode_decode(crop_img, img_meta, dataset_ids)
                 preds += F.pad(crop_seg_logit,
                                (int(x1), int(preds.shape[3] - x2), int(y1),
                                 int(preds.shape[2] - y2)))
@@ -647,10 +648,10 @@ class AFFormerMdsEncoderDecoder(Backbone):
                 warning=False)
         return preds
 
-    def whole_inference(self, img, img_meta, rescale):
+    def whole_inference(self, img, img_meta, rescale, dataset_ids):
         """Inference with full image."""
 
-        seg_logit = self.encode_decode(img, img_meta)
+        seg_logit = self.encode_decode(img, img_meta, dataset_ids)
         if rescale:
             # support dynamic shape for onnx
             if torch.onnx.is_in_onnx_export():
@@ -751,7 +752,7 @@ class AFFormerMulheadEncoderDecoder(Backbone):
                  test_cfg=None,
                  pretrained=None,
                  init_cfg=None):
-        super(AFFormerEncoderDecoder, self).__init__()
+        super(AFFormerMulheadEncoderDecoder, self).__init__()
         with open(cfg.MODEL.AFFORMER_CONFIG, 'r') as f:
             aff_cfg =  f.read()
         local_namespace = {}
@@ -852,7 +853,7 @@ class AFFormerMulheadEncoderDecoder(Backbone):
             x = self.neck(x)
         return x
 
-    def encode_decode(self, img, img_metas):
+    def encode_decode(self, img, img_metas, dataset_ids):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         x = self.extract_feat(img)
@@ -929,7 +930,7 @@ class AFFormerMulheadEncoderDecoder(Backbone):
 
         return seg_logit
 
-    def forward(self, img, img_metas, gt_semantic_seg, return_loss=True, **kwargs):
+    def forward(self, img, img_metas, gt_semantic_seg, dataset_ids, return_loss=True, **kwargs):
         """Forward function for training.
 
         Args:
@@ -962,7 +963,7 @@ class AFFormerMulheadEncoderDecoder(Backbone):
 
             return losses
         else:
-            return self.encode_decode(img, img_metas)
+            return self.encode_decode(img, img_metas, dataset_ids)
 
     # TODO refactor
     def slide_inference(self, img, img_meta, rescale):

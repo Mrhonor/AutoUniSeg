@@ -115,12 +115,13 @@ class AFFormer_ARCH(nn.Module):
         with_adj_loss = cfg.LOSS.WITH_ADJ_LOSS 
         with_relation_loss = cfg.LOSS.WITH_RELATION_LOSS 
         with_gaussian_loss = cfg.LOSS.WITH_GAUSSIAN_LOSS
+        relation_gt_graph =None
         if with_relation_loss:
             assert cfg.DATASETS.RELATION_GRAPH is not None, "relation graph is None"
             with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
                 relation_gt_graph = pickle.load(file)
 
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 1, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 15, "loss_ce6": 15, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 1, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 1, "loss_ce6": 1, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
         ignore_lb = cfg.DATASETS.IGNORE_LB
         ohem_thresh = cfg.LOSS.OHEM_THRESH
  
@@ -177,7 +178,7 @@ class AFFormer_ARCH(nn.Module):
         if self.Pretraining:
 
             if self.training:
-                outputs = self.seg_model(images.tensor, None, None, False)
+                outputs = self.seg_model(images.tensor, None, None, dataset_lbs, False)
                 losses = self.clac_pretrain_loss(batched_inputs, images, targets, dataset_lbs, outputs)
                 # losses = self.MdsOhemLoss(outputs['logits'], targets, dataset_lbs)
                         
@@ -190,9 +191,10 @@ class AFFormer_ARCH(nn.Module):
                 return losses
         
             else:
-                logits = [self.seg_model(images.tensor, None, None)]
+                outputs = self.seg_model(images.tensor, None, None, dataset_lbs, False)
+                
                 processed_results = []
-                for logit, input_per_image, image_size in zip(logits, batched_inputs, images.image_sizes):
+                for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
                 # for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
                     height = input_per_image.get("height", image_size[0])
                     width = input_per_image.get("width", image_size[1])
@@ -250,10 +252,10 @@ class AFFormer_ARCH(nn.Module):
             # logger.info(f"logits:{logits.shape}, target:{targets[dataset_lbs==idx].shape}")
             loss = self.criterion(logits, targets[dataset_lbs==idx])
                     
-            if torch.isnan(loss):
-                logger.info(f"file_name:{batched_inputs[2*idx]['file_name']}, {torch.min(targets[dataset_lbs==idx])}")
+            # if torch.isnan(loss):
+            #     logger.info(f"file_name:{batched_inputs[2*idx]['file_name']}, {torch.min(targets[dataset_lbs==idx])}")
                         
-                continue
+            #     continue
             losses[f'loss_ce{idx}'] = loss
         return losses
 

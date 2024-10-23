@@ -1,33 +1,28 @@
 MODEL:
   BACKBONE:
     FREEZE_AT: 0
-    NAME: "HighResolutionNet"
-  WEIGHTS: "output/hrnetv2_w48_imagenet_pretrained.pth"
+    NAME: "AFFormerMulheadEncoderDecoder"
+  WEIGHTS: "output/AFFormer_tiny_ImageNet1k_remap.pth"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
-  HRNET:
-    HRNET_CFG: "hrnet48"
-    KEEP_IMAGENET_HEAD: False  # not used
-    DROP_STAGE4: False
-    FULL_RES_STEM: False
-    BN_TYPE: "torchsyncbn"  # use syncbn for cityscapes dataset
   AUX_MODE: "train"
   PRETRAINING: True
+  AFFORMER_CONFIG: 'configs/AFFormer_tiny_cityscapes.py'
 DATASETS:
-  TRAIN: ("cs_sem_seg_train", "idd_sem_seg_train", "ade_sem_seg_train")
-  EVAL: ("cs_sem_seg_train_2", "idd_sem_seg_train_2", "ade_sem_seg_train_2")
-  TEST: ("cs_sem_seg_val", "idd_sem_seg_val", "ade_sem_seg_val")
-  DATASETS_CATS: [19, 26, 150]
+  TRAIN: ("cs_sem_seg_train", "mapi_sem_seg_train", "sunrgbd_sem_seg_train", "bdd_sem_seg_train", "idd_sem_seg_train", "ade_sem_seg_train", "coco_sem_seg_train")
+  EVAL: ("cs_sem_seg_train_2", "mapi_sem_seg_train_2", "sunrgbd_sem_seg_train_2", "bdd_sem_seg_train_2", "idd_sem_seg_train_2", "ade_sem_seg_train_2", "coco_sem_seg_train_2")
+  TEST: ("cs_sem_seg_val", "mapi_sem_seg_val", "sunrgbd_sem_seg_val", "bdd_sem_seg_val", "idd_sem_seg_val", "ade_sem_seg_val", "coco_sem_seg_val")
+  DATASETS_CATS: [19, 64, 37, 19, 26, 150, 133]
   IGNORE_LB: 255
-  NUM_UNIFY_CLASS: 195
-  CONFIGER: 'configs/ltbgnn_3_datasets_gpt.json'
-  RELATION_GRAPH: 'output/gt_relation_graph_3ds.pickle'
+  NUM_UNIFY_CLASS: 448
+  CONFIGER: 'configs/ltbgnn_7_datasets_gpt.json'
+  RELATION_GRAPH: 'output/gt_relation_graph_7ds.pickle'
 LOSS:
   OHEM_THRESH: 0.7 
-  WITH_SPA_LOSS: False
+  WITH_SPA_LOSS: True
   WITH_ORTH_LOSS: True
   WITH_ADJ_LOSS: False
-  WITH_RELATION_LOSS: True
+  WITH_RELATION_LOSS: False
   WITH_GAUSSIAN_LOSS: False
 SOLVER:
   IMS_PER_BATCH: 8
@@ -62,7 +57,7 @@ INPUT:
   FORMAT: "RGB"
   DATASET_MAPPER_NAME: "BASE"
 TEST:
-  EVAL_PERIOD: 10000
+  EVAL_PERIOD: 25000
   AUG:
     ENABLED: False
     MIN_SIZES: [256, 384, 512, 640, 768, 896, 512, 768, 1024, 1280, 1536, 1792]

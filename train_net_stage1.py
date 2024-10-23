@@ -241,10 +241,10 @@ class Trainer(DefaultTrainer):
         elif 'bdd' in dataset_name:
             dataset_id = 3
         elif 'idd' in dataset_name:
-            # dataset_id = 4
-            dataset_id = 1
+            dataset_id = 4
+            # dataset_id = 1
         elif 'ade' in dataset_name:
-            dataset_id = 2
+            dataset_id = 5
         elif 'coco' in dataset_name:
             dataset_id = 6
         else:
@@ -264,9 +264,9 @@ class Trainer(DefaultTrainer):
         elif 'bdd' in dataset_name:
             dataset_id = 3
         elif 'idd' in dataset_name:
-            dataset_id = 1
+            dataset_id = 4
         elif 'ade' in dataset_name:
-            dataset_id = 2
+            dataset_id = 5
         elif 'coco' in dataset_name:
             dataset_id = 6
         else:

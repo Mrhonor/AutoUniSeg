@@ -5,10 +5,10 @@ inference_test_output
 
 *.log
 *.png
+!/img/*.png
 *.json
 *.diff
 *.jpg
-!/projects/DensePose/doc/images/*.jpg
 
 # compilation and distribution
 __pycache__

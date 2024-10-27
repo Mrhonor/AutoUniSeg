@@ -24,42 +24,15 @@ def BNReLU(num_features, bn_type=None, **kwargs):
             nn.SyncBatchNorm(num_features, **kwargs),
             nn.ReLU()
         )
-    elif bn_type == 'syncbn':
-        from lib.extensions.syncbn.module import BatchNorm2d
-        return nn.Sequential(
-            BatchNorm2d(num_features, **kwargs),
-            nn.ReLU()
-        )
-    elif bn_type == 'sn':
-        from lib.extensions.switchablenorms.switchable_norm import SwitchNorm2d
-        return nn.Sequential(
-            SwitchNorm2d(num_features, **kwargs),
-            nn.ReLU()
-        )
     elif bn_type == 'gn':
         return nn.Sequential(
             nn.GroupNorm(num_groups=8, num_channels=num_features, **kwargs),
             nn.ReLU()
         )
-    elif bn_type == 'fn':
-        Log.error('Not support Filter-Response-Normalization: {}.'.format(bn_type))
-        exit(1)
-    elif bn_type == 'inplace_abn':
-        torch_ver = torch.__version__[:3]
-        # Log.info('Pytorch Version: {}'.format(torch_ver))
-        if torch_ver == '0.4':
-            from lib.extensions.inplace_abn.bn import InPlaceABNSync
-            return InPlaceABNSync(num_features, **kwargs)
-        elif torch_ver in ('1.0', '1.1'):
-            from lib.extensions.inplace_abn_1.bn import InPlaceABNSync
-            return InPlaceABNSync(num_features, **kwargs)
-        elif torch_ver == '1.2':
-            from inplace_abn import InPlaceABNSync
-            return InPlaceABNSync(num_features, **kwargs)
 
     else:
-        Log.error('Not support BN type: {}.'.format(bn_type))
-        exit(1)
+        raise Exception('Not support BN type: {}.'.format(bn_type))
+
 
 
 class ProjectionHead(nn.Module):

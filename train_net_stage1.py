@@ -422,8 +422,8 @@ def main(args):
         # return
     
     trainer = Trainer(cfg)
-    trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
-    # trainer.register_hooks([iter_info_hook()])
+    # trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
+    trainer.register_hooks([iter_info_hook()])
     trainer.resume_or_load(resume=args.resume)
     return trainer.train()
 

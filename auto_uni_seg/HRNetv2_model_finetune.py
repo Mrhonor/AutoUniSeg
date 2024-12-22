@@ -191,13 +191,13 @@ class HRNet_W48_Finetune_ARCH(nn.Module):
             if self.with_datasets_aux:
                 aux_logits_out = outputs['aux_logits']
             losses = {}
-            for id, logit in enumerate(remap_logits):
+            for idx, logit in enumerate(remap_logits):
                 logits = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                loss = self.criterion(logits, targets[dataset_lbs==id])
+                loss = self.criterion(logits, targets[dataset_lbs==idx])
                 # logger.info(f"loss:{loss}")
-                if torch.isnan(loss):
-                    continue
-                losses[f'loss_ce{id}'] = loss
+                # if torch.isnan(loss):
+                #     continue
+                losses[f'loss_ce{idx}'] = loss
             
             if self.with_datasets_aux:
                 for idx, aux_logits in enumerate(aux_logits_out):

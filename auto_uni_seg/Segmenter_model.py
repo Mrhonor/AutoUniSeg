@@ -13,7 +13,6 @@ from detectron2.modeling.postprocessing import sem_seg_postprocess
 
 from .modeling.GNN.gen_graph_node_feature import gen_graph_node_feature
 from .modeling.GNN.ltbgnn_llama import build_GNN_module
-from .modeling.meta_arch.segmenter.hrnet_backbone import HighResolutionNet
 from .modeling.loss.ohem_ce_loss import OhemCELoss, MdsOhemCELoss
 from .modeling.loss.relation_loss import relation_loss
 from .modeling.loss.ow_loss import MdsOWLoss
@@ -38,9 +37,9 @@ class Segmenter_ARCH(nn.Module):
     """
     @configurable
     def __init__(self, *, 
-                backbone,
+                encoder,
+                decoder,
                 gnn_model,
-                sem_seg_head,
                 datasets_cats,
                 with_datasets_aux,
                 ignore_lb,
@@ -69,7 +68,9 @@ class Segmenter_ARCH(nn.Module):
 
         self.datasets_cats = datasets_cats
         self.n_datasets = len(self.datasets_cats)
-        self.backbone = backbone
+        self.patch_size = encoder.patch_size
+        self.encoder = encoder
+        self.decoder = decoder
         self.gnn_model = gnn_model
         self.size_divisibility = size_divisibility
         self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
@@ -93,7 +94,6 @@ class Segmenter_ARCH(nn.Module):
         self.sec_stage_gnn_iters = gnn_iters - first_stage_gnn_iters
         self.with_datasets_aux = with_datasets_aux
         assert self.first_stage_gnn_iters < self.gnn_iters, "first_stage_gnn_iters must less than gnn_iters"
-        self.proj_head = sem_seg_head # ProjectionHead(dim_in=in_channels, proj_dim=self.output_feat_dim, bn_type=bn_type)
         self.graph_node_features = graph_node_features.cuda()
         self.iters = 0
         self.total_cats = 0
@@ -140,9 +140,8 @@ class Segmenter_ARCH(nn.Module):
 
     @classmethod
     def from_config(cls, cfg):
-        backbone = build_backbone(cfg)
-        # sem_seg_head = build_sem_seg_head(cfg, 720)
-        sem_seg_head = build_sem_seg_head(cfg, backbone.num_features)
+        encoder = build_backbone(cfg)
+        decoder = build_sem_seg_head(cfg, encoder.d_model)
         datasets_cats = cfg.DATASETS.DATASETS_CATS
         ignore_lb = cfg.DATASETS.IGNORE_LB
         ohem_thresh = cfg.LOSS.OHEM_THRESH
@@ -166,6 +165,7 @@ class Segmenter_ARCH(nn.Module):
         with_adj_loss = cfg.LOSS.WITH_ADJ_LOSS 
         with_relation_loss = cfg.LOSS.WITH_RELATION_LOSS 
         with_gaussian_loss = cfg.LOSS.WITH_GAUSSIAN_LOSS
+        relation_gt_graph = None
         if with_relation_loss:
             assert cfg.DATASETS.RELATION_GRAPH is not None, "relation graph is None"
             with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
@@ -176,8 +176,8 @@ class Segmenter_ARCH(nn.Module):
         loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 1, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 15, "loss_ce6": 15, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 3, "loss_ce5": 3, "loss_ce6": 1, "loss_aux0": 1, "loss_aux1": 2, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 3, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
         return {
-            'backbone': backbone,
-            'sem_seg_head': sem_seg_head,
+            'encoder': encoder,
+            'decoder': decoder,
             'gnn_model': gnn_model,
             'datasets_cats': datasets_cats,
             'with_datasets_aux': with_datasets_aux, 
@@ -201,25 +201,21 @@ class Segmenter_ARCH(nn.Module):
             "with_gaussian_loss": with_gaussian_loss,
             "relation_gt_graph": relation_gt_graph,
             "loss_weight_dict": loss_weight_dict,
-            "n_points": n_points
+
         }
 
 
+    @torch.jit.ignore
+    def no_weight_decay(self):
+        def append_prefix_no_weight_decay(prefix, module):
+            return set(map(lambda x: prefix + x, module.no_weight_decay()))
+
+        nwd_params = append_prefix_no_weight_decay("encoder.", self.encoder).union(
+            append_prefix_no_weight_decay("decoder.", self.decoder)
+        )
+        return nwd_params
+
     def forward(self, batched_inputs):
-        # images = [x["image"].cuda() for x in batched_inputs]
-        # images = [(x - self.pixel_mean) / self.pixel_std for x in images]
-        # images = ImageList.from_tensors(images, self.size_divisibility)
-        # targets = [x["sem_seg"].cuda() for x in batched_inputs]
-        # targets = self.prepare_targets(targets, images)
-        # targets = torch.cat(targets, dim=0)
-        # features = self.backbone(images.tensor)
-        
-        # if self.training:
-        #     images = batched_inputs['image'].cuda()
-        #     targets = batched_inputs['sem_seg'].cuda()
-        #     features = self.backbone(images)  
-        # else:
-        
         images = [x["image"].cuda() for x in batched_inputs]
         images = [(x - self.pixel_mean) / self.pixel_std for x in images]
         # if self.training:
@@ -242,121 +238,66 @@ class Segmenter_ARCH(nn.Module):
             except:
                 dataset_lbs = 0
         
-        if self.Pretraining:
-            features = self.backbone(images.tensor)
-            outputs = self.proj_head(features, dataset_lbs)
+        # H_ori, W_ori = im.size(2), im.size(3)
+        # im = padding(im, self.patch_size)
+        H, W = images.tensor.size(2), images.tensor.size(3)
 
-            if self.training:
-                # bipartite matching-based loss
-                losses = self.clac_pretrain_loss(batched_inputs, images, targets, dataset_lbs, outputs)
-                # losses = self.MdsOhemLoss(outputs['logits'], targets, dataset_lbs)
-                        
-                
-                for k in list(losses.keys()):
-                    if k in self.loss_weight_dict:
-                        losses[k] *= self.loss_weight_dict[k]
-                    # else:
-                    #     # remove this loss if not specified in `weight_dict`
-                    #     losses.pop(k)
-                return losses
-            else:
-                processed_results = []
-                for logit, input_per_image, image_size, uni_logit in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):
-                # for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
-                    height = input_per_image.get("height", image_size[0])
-                    width = input_per_image.get("width", image_size[1])
-                    # logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                    
-                    if self.dataset_adapter[0] is not None:
-                    # logger.info(uni_logits.shape)
-                        preds = torch.argmax(logit, dim=0, keepdim=True).long()
-                        this_mseg_map = self.dataset_adapter[0]
-                        # logger.info(this_mseg_map)      
+        x = self.encoder(images.tensor, return_features=True)
+        
+        # remove CLS/DIST tokens for decoding
+        num_extra_tokens = 1 + self.encoder.distilled
+        x = x[:, num_extra_tokens:]
+        
+        masks = self.decoder(x, (H, W))
+        
+        # masks = F.interpolate(masks, size=(H, W), mode="bilinear")
+        outputs = {"logits":[masks], "uni_logits":masks}
 
-                        preds = this_mseg_map[preds].long()
-                        output = torch.zeros(int(torch.max(this_mseg_map)+1), preds.shape[1], preds.shape[2]).cuda()
-                        
-                        output.scatter_(0, preds, 1)
-                        logit = output
+        if self.training:
+            # bipartite matching-based loss
+            losses = self.clac_pretrain_loss(batched_inputs, images, targets, dataset_lbs, outputs)
+            # losses = self.MdsOhemLoss(outputs['logits'], targets, dataset_lbs)
                     
-                    logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                    # uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                    
-                    uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
-                    # # logger.info(f"logit shape:{uni_logit.shape}")
-
-
-                    processed_results.append({"sem_seg": logit, "uni_logits":uni_logit})
-                return processed_results
-                # processed_results = []
-                # for logit, input_per_image, image_size, uni_logit in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):
-                # # for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
-                #     height = input_per_image.get("height", image_size[0])
-                #     width = input_per_image.get("width", image_size[1])
-                #     logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                    
-                #     logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                #     uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                    
-                #     uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
-                #     # logger.info(f"logit shape:{logit.shape}")
-                #     processed_results.append({"sem_seg": logit, 'uni_logits': uni_logit})
-                #     # processed_results.append({"sem_seg": logit})
-                # return processed_results
-        else:
             
-    
-            if self.training:
-                self.env_init(self.iters)
-                features = self.backbone(images.tensor)
-                outputs = self.proj_head(features, dataset_lbs)
-                unify_prototype, bi_graphs, _, _ = self.gnn_model(self.graph_node_features)
-                adj_matrix = self.gnn_model.adj_matrix
-                self.alter_iters += 1
-                losses = self.calc_loss(images, targets, dataset_lbs, outputs, unify_prototype, bi_graphs, batched_inputs, adj_matrix)
-                    
-                for k in list(losses.keys()):
-                    if k in self.loss_weight_dict:
-                        losses[k] *= self.loss_weight_dict[k]
-                return losses
-            else:
-                # self.backbone.eval()
-                # self.proj_head.eval()
-                # self.gnn_model.eval()
+            for k in list(losses.keys()):
+                if k in self.loss_weight_dict:
+                    losses[k] *= self.loss_weight_dict[k]
+                # else:
+                #     # remove this loss if not specified in `weight_dict`
+                #     losses.pop(k)
+            return losses
+        else:
+            processed_results = []
+            for logit, input_per_image, image_size, uni_logit in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):
+            # for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
+                height = input_per_image.get("height", image_size[0])
+                width = input_per_image.get("width", image_size[1])
+                # logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                 
-                features = self.backbone(images.tensor)
-                outputs = self.proj_head(features, dataset_lbs)
-                unify_prototype, bi_graphs, _, _ = self.gnn_model(self.graph_node_features)
-                if self.train_seg_or_gnn == self.SEG:
-                    processed_results = []
-                    for logit, input_per_image, image_size in zip(outputs['logits'], batched_inputs, images.image_sizes):
-                        height = input_per_image.get("height", image_size[0])
-                        width = input_per_image.get("width", image_size[1])
-                        logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                        logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                        # logger.info(f"logit shape:{logit.shape}")
-                        processed_results.append({"sem_seg": logit})
-                else:
-                    # logger.info(f"{len(bi_graphs)}")
-                    if self.with_datasets_aux:
-                        ori_logits = torch.einsum('bchw, nc -> bnhw', outputs['emb'], unify_prototype[self.total_cats:])
-                    else:
-                        ori_logits = torch.einsum('bchw, nc -> bnhw', outputs['emb'], unify_prototype)
-                    if len(bi_graphs) == 2*self.n_datasets:
-                        logits = torch.einsum('bchw, nc -> bnhw', ori_logits, bi_graphs[2*dataset_lbs+1])
-                    else:
-                        logits = torch.einsum('bchw, nc -> bnhw', ori_logits, bi_graphs[dataset_lbs])
-                    processed_results = []
-                    for input_per_image, image_size in zip(batched_inputs, images.image_sizes):
-                        height = input_per_image.get("height", image_size[0])
-                        width = input_per_image.get("width", image_size[1])
-                        logits = F.interpolate(logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                        
-                        logits = retry_if_cuda_oom(sem_seg_postprocess)(logits, image_size, height, width)
-                        # logger.info(f"logit shape:{logit.shape}")
-                        processed_results.append({"sem_seg": logits, "uni_logits": ori_logits})
-                    
-                return processed_results                
+
+                
+                logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
+                # uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                
+                uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
+                # # logger.info(f"logit shape:{uni_logit.shape}")
+
+
+                processed_results.append({"sem_seg": logit, "uni_logits":uni_logit})
+            return processed_results
+
+
+    def get_attention_map_enc(self, im, layer_id):
+        return self.encoder.get_attention_map(im, layer_id)
+
+    def get_attention_map_dec(self, im, layer_id):
+        x = self.encoder(im, return_features=True)
+
+        # remove CLS/DIST tokens for decoding
+        num_extra_tokens = 1 + self.encoder.distilled
+        x = x[:, num_extra_tokens:]
+
+        return self.decoder.get_attention_map(x, layer_id)      
 
 
     def clac_pretrain_loss(self, batched_inputs, images, targets, dataset_lbs, outputs):

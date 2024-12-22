@@ -404,14 +404,16 @@ class Learnable_Topology_BGNN_llama(nn.Module):
             self.GCN_layer1 = GCN(self.nfeat_out, int(self.nfeat_out/2))
             self.GCN_layer2 = GCN(int(self.nfeat_out/2), int(self.nfeat_out/4))
             self.GCN_layer3 = GCN(int(self.nfeat_out/4), int(self.nfeat_out/8))
+            self.linear1 = nn.Linear(int(self.nfeat_out/8), self.output_feat_dim)
             # self.GCN_layer4 = GCN(int(self.nfeat_out), int(self.nfeat_out))
         elif self.GNN_type == 'GSAGE':
             self.GCN_layer1 = GSAGE(self.nfeat_out, self.nfeat_out)
-            self.GCN_layer2 = GSAGE(self.nfeat_out, int(self.nfeat_out))
-            self.GCN_layer3 = GSAGE(int(self.nfeat_out), int(self.nfeat_out))   
+            self.GCN_layer2 = GSAGE(self.nfeat_out, self.nfeat_out)
+            self.GCN_layer3 = GSAGE(self.nfeat_out, self.nfeat_out)
+            self.linear1 = nn.Linear(self.nfeat_out, self.output_feat_dim)
             # self.GCN_layer4 = GSAGE(int(self.nfeat_out), int(self.nfeat_out))   
         
-        self.linear1 = nn.Linear(int(self.nfeat_out), self.output_feat_dim)
+        
         
         self.linear2 = nn.Linear(self.output_feat_dim, self.adj_feat_dim) 
         ## datasets Node features

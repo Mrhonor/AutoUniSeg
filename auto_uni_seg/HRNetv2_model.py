@@ -184,6 +184,7 @@ class HRNet_W48_ARCH(nn.Module):
         with_adj_loss = cfg.LOSS.WITH_ADJ_LOSS 
         with_relation_loss = cfg.LOSS.WITH_RELATION_LOSS 
         with_gaussian_loss = cfg.LOSS.WITH_GAUSSIAN_LOSS
+        relation_gt_graph = None
         if with_relation_loss:
             assert cfg.DATASETS.RELATION_GRAPH is not None, "relation graph is None"
             with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
@@ -191,7 +192,7 @@ class HRNet_W48_ARCH(nn.Module):
         
         n_points = cfg.MODEL.GNN.N_POINTS
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 1, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 15, "loss_ce6": 15, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 5, "loss_ce6": 5, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 10}
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 3, "loss_ce5": 3, "loss_ce6": 1, "loss_aux0": 1, "loss_aux1": 2, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 3, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
         return {
             'backbone': backbone,
@@ -385,10 +386,10 @@ class HRNet_W48_ARCH(nn.Module):
             # logger.info(f"logits:{logits.shape}, target:{targets[dataset_lbs==idx].shape}")
             loss = self.criterion(logits, targets[dataset_lbs==idx])
                     
-            if torch.isnan(loss):
-                logger.info(f"file_name:{batched_inputs[2*idx]['file_name']}, {torch.min(targets[dataset_lbs==idx])}")
+            # if torch.isnan(loss):
+            #     logger.info(f"file_name:{batched_inputs[2*idx]['file_name']}, {torch.min(targets[dataset_lbs==idx])}")
                         
-                continue
+            #     continue
             losses[f'loss_ce{idx}'] = loss
         return losses
 
@@ -433,26 +434,26 @@ class HRNet_W48_ARCH(nn.Module):
                     remap_logits_2 = F.interpolate(remap_logits_2, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                     loss_2 = self.criterion(remap_logits_2, targets[dataset_lbs==i])
                     loss = uot_rate*loss_1 + adj_rate*loss_2
-                    if torch.isnan(loss):
-                        logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
-                    else:
-                        losses[f'loss_ce{i}'] = loss
+                    # if torch.isnan(loss):
+                    #     logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
+                    # else:
+                    losses[f'loss_ce{i}'] = loss
                 else:
                     remap_logits = torch.einsum('bchw, nc -> bnhw', logits[dataset_lbs==i], bi_graphs[i])
                         
                     remap_logits = F.interpolate(remap_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                     loss = self.criterion(remap_logits, targets[dataset_lbs==i])
-                    if torch.isnan(loss):
-                        logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
-                    else:
-                        losses[f'loss_ce{i}'] = loss
+                    # if torch.isnan(loss):
+                    #     logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
+                    # else:
+                    losses[f'loss_ce{i}'] = loss
             else:
                 remap_logits[i] = F.interpolate(remap_logits[i], size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                 loss = self.criterion(remap_logits[i], targets[dataset_lbs==i])
-                if torch.isnan(loss):
-                    logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
-                else:
-                    losses[f'loss_ce{i}'] = loss                   
+                # if torch.isnan(loss):
+                #     logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
+                # else:
+                losses[f'loss_ce{i}'] = loss                   
             
 
             if self.with_datasets_aux:
@@ -463,10 +464,10 @@ class HRNet_W48_ARCH(nn.Module):
                         
                 aux_logits = F.interpolate(aux_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                 aux_loss = self.criterion(aux_logits, targets[dataset_lbs==i])
-                if torch.isnan(aux_loss):
-                    logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
-                else:
-                    losses[f'loss_aux{i}'] = aux_loss
+                # if torch.isnan(aux_loss):
+                #     logger.info(f"file_name:{batched_inputs[2*i]['file_name']}, {torch.min(targets[dataset_lbs==i])}")
+                # else:
+                losses[f'loss_aux{i}'] = aux_loss
                     
 
                 

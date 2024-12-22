@@ -1,18 +1,20 @@
-_BASE_: Base_SemanticSegmentation_hrnet.yaml
+_BASE_: Base_SemanticSegmentation_afformer.yaml
 MODEL:
-  META_ARCHITECTURE: "HRNet_W48_Finetune_ARCH"
-  WEIGHTS: "output/3ds_with_relation_model_gnn.pth"
+  BACKBONE:
+    NAME: "AFFormerMdsEncoderDecoder"
+  META_ARCHITECTURE: "AFFormer_Finetune_ARCH"
+  WEIGHTS: "output/aff_finetune_model_0099999.pth"
   PRETRAINING: False
   SEM_SEG_HEAD:
-    NAME: "HRNet_W48_llama"
-    OUTPUT_FEAT_DIM: 512
+    NAME: "CLS"
+    OUTPUT_FEAT_DIM: 256
     BN_TYPE: "torchsyncbn"
   GNN:
     GNN_MODEL_NAME: "Learnable_Topology_BGNN_llama"
     NFEAT: 4096
     NFEAT_OUT: 2048
     nfeat_adj: 256
-    adj_feat_dim: 512
+    adj_feat_dim: 256
     dropout_rate: 0.5
     threshold_value: 0.95
     calc_bipartite: False
@@ -28,4 +30,4 @@ MODEL:
     SEG_ITERS: 20000
     FIRST_STAGE_GNN_ITERS: 15000
     FINETUNE_STAGE1_ITERS: 100000
-    INIT_ADJ_PATH: "output/init_adjacency_3ds.pt"
+    INIT_ADJ_PATH: "output/init_adjacency_7ds_aff.pt"

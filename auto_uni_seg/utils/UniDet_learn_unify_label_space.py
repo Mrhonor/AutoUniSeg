@@ -59,6 +59,7 @@ def inference_context(model):
 class UniDetLearnUnifyLabelSpace(HookBase):
     @torch.no_grad()
     def after_train(self):
+    # def before_train(self):
         logger = logging.getLogger(__name__)
         logger.info("UniDetLearnUnifyLabelSpace")
         cfg = self.trainer.cfg
@@ -123,6 +124,7 @@ class UniDetLearnUnifyLabelSpace(HookBase):
 
             predHist = {}
             for id, name in enumerate(datasets_name):
+                torch.cuda.empty_cache()
                 this_dataset_cat = datasets_cats[id]
                 # n_classes = total_cats
                 # print(n_classes)
@@ -153,6 +155,18 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                                 total_eval_time = 0
 
                             start_compute_time = time.perf_counter()
+                            for x in inputs:
+                                im = x["image"]
+                                if im.shape[-2] > 2100 or im.shape[-1] > 2100:
+                                    # print(im.shape)
+                                    x["image"] = F.interpolate(im[None].float(), size=(int(im.shape[-2]*0.4), int(im.shape[-1]*0.4)), mode='bilinear', align_corners=True).squeeze(0)
+                                    x["sem_seg"] = F.interpolate(x["sem_seg"].float()[None][None], size=(int(im.shape[-2]*0.4), int(im.shape[-1]*0.4)), mode='nearest').squeeze().long()
+                      
+                                    if "height" in x:
+                                        x["height"] = int(0.4 * x["height"])
+                                    if "width" in x:
+                                        x["width"] = int(0.4 * x["width"])
+                                        
                             dict.get(callbacks or {}, "before_inference", lambda: None)()
                             outputs = model(inputs)
                             dict.get(callbacks or {}, "after_inference", lambda: None)()
@@ -161,15 +175,7 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                             total_compute_time += time.perf_counter() - start_compute_time
 
                             start_eval_time = time.perf_counter()
-                            for x in inputs:
-                                im = x["image"]
-                                if im.shape[-2] > 1200 or im.shape[-1] > 1200:
-                                    x["image"] = F.interpolate(im[None].float(), size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='bilinear', align_corners=True).squeeze(0)
-                                    x["sem_seg"] = F.interpolate(x["sem_seg"].float()[None][None], size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='nearest').squeeze().long()
-                                    if "height" in x:
-                                        x["height"] = int(0.5 * x["height"])
-                                    if "width" in x:
-                                        x["width"] = int(0.5 * x["width"])
+           
                                         
                             labels = [x["sem_seg"][None].cuda() for x in inputs]
 
@@ -180,6 +186,10 @@ class UniDetLearnUnifyLabelSpace(HookBase):
                                 this_cat = datasets_cats[this_dataset_idx] 
                                 # logger.info("this_cat")
                                 for lb, lg in zip(labels, logits):
+                                    print("lb: ", lb.shape)
+                                    print("lg: ", lg.shape)
+                                    print("cnt: ", cnt)
+                                    print("this_cat: ", this_cat)
                                     this_lg = lg[:,cnt:cnt+this_cat,:,:]
 
                                     this_lg = F.interpolate(this_lg, size=(lb.shape[1], lb.shape[2]), mode="bilinear", align_corners=True)

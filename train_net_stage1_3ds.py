@@ -27,7 +27,12 @@ from detectron2.engine import (
     launch,
 )
 from detectron2.evaluation import (
+    CityscapesInstanceEvaluator,
+    CityscapesSemSegEvaluator,
+    COCOEvaluator,
+    COCOPanopticEvaluator,
     DatasetEvaluators,
+    LVISEvaluator,
     SemSegEvaluator,
     verify_results,
     
@@ -35,7 +40,6 @@ from detectron2.evaluation import (
 from detectron2.projects.deeplab import add_deeplab_config, build_lr_scheduler
 from detectron2.solver.build import maybe_add_gradient_clipping
 from detectron2.utils.logger import setup_logger
-
 
 
 from auto_uni_seg import (
@@ -57,7 +61,6 @@ from auto_uni_seg import (
     eval_for_mseg_datasets,
     UniDetLearnUnifyLabelSpace
 )
-
 
 from PIL import Image
 from detectron2.utils.file_io import PathManager
@@ -100,7 +103,6 @@ def my_sem_seg_loading_fn(filename, dtype=int, lb_map=None, size_divisibility=-1
 
 class Trainer(DefaultTrainer):
 
-
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
         """
@@ -130,6 +132,56 @@ class Trainer(DefaultTrainer):
                     sem_seg_loading_fn=partial(my_sem_seg_loading_fn, lb_map=lb_map, size_divisibility=cfg.INPUT.SIZE_DIVISIBILITY, ignore_label=cfg.DATASETS.IGNORE_LB)
                 )
             )
+                # instance segmentation
+        if evaluator_type == "coco":
+            evaluator_list.append(COCOEvaluator(dataset_name, output_dir=output_folder))
+        # panoptic segmentation
+        if evaluator_type in [
+            "coco_panoptic_seg",
+            "ade20k_panoptic_seg",
+            "cityscapes_panoptic_seg",
+            "mapillary_vistas_panoptic_seg",
+        ]:
+            if cfg.MODEL.MASK_FORMER.TEST.PANOPTIC_ON:
+                evaluator_list.append(COCOPanopticEvaluator(dataset_name, output_folder))
+        # COCO
+        if evaluator_type == "coco_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
+            evaluator_list.append(COCOEvaluator(dataset_name, output_dir=output_folder))
+        if evaluator_type == "coco_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
+            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True, output_dir=output_folder))
+        # Mapillary Vistas
+        if evaluator_type == "mapillary_vistas_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
+            evaluator_list.append(InstanceSegEvaluator(dataset_name, output_dir=output_folder))
+        if evaluator_type == "mapillary_vistas_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
+            evaluator_list.append(SemSegEvaluator(dataset_name, distributed=True, output_dir=output_folder))
+        # Cityscapes
+        if evaluator_type == "cityscapes_instance":
+            assert (
+                torch.cuda.device_count() > comm.get_rank()
+            ), "CityscapesEvaluator currently do not work with multiple machines."
+            return CityscapesInstanceEvaluator(dataset_name)
+        if evaluator_type == "cityscapes_sem_seg":
+            assert (
+                torch.cuda.device_count() > comm.get_rank()
+            ), "CityscapesEvaluator currently do not work with multiple machines."
+            return CityscapesSemSegEvaluator(dataset_name)
+        if evaluator_type == "cityscapes_panoptic_seg":
+            if cfg.MODEL.MASK_FORMER.TEST.SEMANTIC_ON:
+                assert (
+                    torch.cuda.device_count() > comm.get_rank()
+                ), "CityscapesEvaluator currently do not work with multiple machines."
+                evaluator_list.append(CityscapesSemSegEvaluator(dataset_name))
+            if cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
+                assert (
+                    torch.cuda.device_count() > comm.get_rank()
+                ), "CityscapesEvaluator currently do not work with multiple machines."
+                evaluator_list.append(CityscapesInstanceEvaluator(dataset_name))
+        # ADE20K
+        if evaluator_type == "ade20k_panoptic_seg" and cfg.MODEL.MASK_FORMER.TEST.INSTANCE_ON:
+            evaluator_list.append(InstanceSegEvaluator(dataset_name, output_dir=output_folder))
+        # LVIS
+        if evaluator_type == "lvis":
+            return LVISEvaluator(dataset_name, output_dir=output_folder)
         if len(evaluator_list) == 0:
             raise NotImplementedError(
                 "no Evaluator for the dataset {} with the type {}".format(
@@ -145,6 +197,28 @@ class Trainer(DefaultTrainer):
         # Semantic segmentation dataset mapper
         if cfg.INPUT.DATASET_MAPPER_NAME == 'BASE':
             return LoaderAdapter(cfg, aux_mode='train')
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_semantic":
+            mapper = MaskFormerSemanticDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_semantic_sam":
+            mapper = MaskFormerSemanticDatasetMapper_2(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # Panoptic segmentation dataset mapper
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_panoptic":
+            mapper = MaskFormerPanopticDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # Instance segmentation dataset mapper
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "mask_former_instance":
+            mapper = MaskFormerInstanceDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # coco instance segmentation lsj new baseline
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "coco_instance_lsj":
+            mapper = COCOInstanceNewBaselineDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
+        # coco panoptic segmentation lsj new baseline
+        elif cfg.INPUT.DATASET_MAPPER_NAME == "coco_panoptic_lsj":
+            mapper = COCOPanopticNewBaselineDatasetMapper(cfg, True)
+            return build_detection_train_loader(cfg, mapper=mapper)
         else:
             mapper = None
             return build_detection_train_loader(cfg, mapper=mapper)
@@ -162,41 +236,38 @@ class Trainer(DefaultTrainer):
         if 'cs' in dataset_name:
             dataset_id = 0            
         elif 'mapi' in dataset_name:
-            dataset_id = 1
+            dataset_id = 0
         elif 'sunrgbd' in dataset_name:
-            dataset_id = 2
+            dataset_id = 0
         elif 'bdd' in dataset_name:
-            dataset_id = 3
+            dataset_id = 0
         elif 'idd' in dataset_name:
-            dataset_id = 4
+            dataset_id = 0
             # dataset_id = 1
         elif 'ade' in dataset_name:
-            dataset_id = 5
+            dataset_id = 0
         elif 'coco' in dataset_name:
-            dataset_id = 6
+            dataset_id = 0
         else:
             dataset_id = 0
-        # dataset_id = 0
         aux_mode = 'test'
-        if '_2' in dataset_name:
-            aux_mode = 'eval'
             
-        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id, datasets_name=[dataset_name])
+        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
 
     @classmethod
     def build_eval_loader(cls, cfg, dataset_name):
         if 'cs' in dataset_name:
             dataset_id = 0            
         elif 'mapi' in dataset_name:
-            dataset_id = 1
+            dataset_id = 0
         elif 'sunrgbd' in dataset_name:
-            dataset_id = 2
+            dataset_id = 0
         elif 'bdd' in dataset_name:
-            dataset_id = 3
+            dataset_id = 0
         elif 'idd' in dataset_name:
-            dataset_id = 4
+            dataset_id = 0
         elif 'ade' in dataset_name:
-            dataset_id = 5
+            dataset_id = 0
         elif 'coco' in dataset_name:
             dataset_id = 6
         else:
@@ -206,6 +277,7 @@ class Trainer(DefaultTrainer):
             
         return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
 
+        
     @classmethod
     def build_optimizer(cls, cfg, model):
         weight_decay_norm = cfg.SOLVER.WEIGHT_DECAY_NORM
@@ -287,6 +359,21 @@ class Trainer(DefaultTrainer):
             optimizer = maybe_add_gradient_clipping(cfg, optimizer)
         return optimizer
 
+    @classmethod
+    def test_with_TTA(cls, cfg, model):
+        logger = logging.getLogger("detectron2.trainer")
+        # In the end of training, run an evaluation with TTA.
+        logger.info("Running inference with test-time augmentation ...")
+        model = SemanticSegmentorWithTTA(cfg, model)
+        evaluators = [
+            cls.build_evaluator(
+                cfg, name, output_folder=os.path.join(cfg.OUTPUT_DIR, "inference_TTA")
+            )
+            for name in cfg.DATASETS.TEST
+        ]
+        res = cls.test(cfg, model, evaluators)
+        res = OrderedDict({k + "_TTA": v for k, v in res.items()})
+        return res
 
 
 def setup(args):
@@ -325,20 +412,20 @@ def main(args):
             cfg.MODEL.WEIGHTS, resume=args.resume
         )
         # eval_for_mseg_datasets(Trainer.build_test_loader, cfg, model)
-        if args.unseen:
-            build_bipartite_graph_for_unseen(Trainer.build_test_loader, cfg, model)
+        # if args.unseen:
+        #     build_bipartite_graph_for_unseen(Trainer.build_test_loader, cfg, model)
         # print_unify_label_space(Trainer.build_test_loader, model, cfg)
         # return
         res = Trainer.test(cfg, model)
-        if cfg.TEST.AUG.ENABLED:
-            res.update(Trainer.test_with_TTA(cfg, model))
+
         if comm.is_main_process():
             verify_results(cfg, res)
         return res
         # return
     
     trainer = Trainer(cfg)
-    trainer.register_hooks([find_unuse_hook(), iter_info_hook()])
+    # trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
+    trainer.register_hooks([iter_info_hook()])
     trainer.resume_or_load(resume=args.resume)
     return trainer.train()
 

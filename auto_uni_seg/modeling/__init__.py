@@ -14,3 +14,4 @@ from .pixel_decoder.msdeformattn import MSDeformAttnPixelDecoder
 from .backbone.afformer import afformer_base, afformer_tiny, afformer_small
 from .meta_arch.aff_head import CLS
 from .meta_arch.AFFormer_encoder_decoder import AFFormerEncoderDecoder, AFFormerMdsEncoderDecoder, AFFormerMulheadEncoderDecoder
+from .meta_arch.segmenter.factory import SegmenterMaskTransformerMulhead, VisionTransformerBackbone

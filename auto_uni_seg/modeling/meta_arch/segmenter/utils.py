@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from timm.models.layers import trunc_normal_
 
-import segm.utils.torch as ptu
 
 
 def init_weights(m):
@@ -158,16 +157,16 @@ def inference(
     batch_size,
 ):
     C = model.n_cls
-    seg_map = torch.zeros((C, ori_shape[0], ori_shape[1]), device=ptu.device)
+    seg_map = torch.zeros((C, ori_shape[0], ori_shape[1])).cuda()
     for im, im_metas in zip(ims, ims_metas):
-        im = im.to(ptu.device)
+        im = im.cuda()
         im = resize(im, window_size)
         flip = im_metas["flip"]
         windows = sliding_window(im, flip, window_size, window_stride)
         crops = torch.stack(windows.pop("crop"))[:, 0]
         B = len(crops)
         WB = batch_size
-        seg_maps = torch.zeros((B, C, window_size, window_size), device=im.device)
+        seg_maps = torch.zeros((B, C, window_size, window_size)).cuda()
         with torch.no_grad():
             for i in range(0, B, WB):
                 seg_maps[i : i + WB] = model.forward(crops[i : i + WB])

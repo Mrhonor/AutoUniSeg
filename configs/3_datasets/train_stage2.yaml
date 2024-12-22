@@ -1,7 +1,7 @@
 _BASE_: Base_SemanticSegmentation_hrnet.yaml
 MODEL:
   META_ARCHITECTURE: "HRNet_W48_ARCH"
-  WEIGHTS: "output/model_final.pth"
+  WEIGHTS: "output/3ds_hrnet_model_0099999.pth"
   PRETRAINING: False
   SEM_SEG_HEAD:
     NAME: "HRNet_W48_llama"
@@ -25,8 +25,8 @@ MODEL:
     with_datasets_aux: False
     init_stage_iters: -1
     isGumbelSoftmax: False
-    GNN_ITERS: 25
-    SEG_ITERS: 25
-    FIRST_STAGE_GNN_ITERS: 20
-    INIT_ADJ_PATH: "output/init_adjacency.pt"
+    GNN_ITERS: 20000
+    SEG_ITERS: 20000
+    FIRST_STAGE_GNN_ITERS: 15000
+    INIT_ADJ_PATH: "output/init_adjacency_3ds.pt"
     N_POINTS: 1024

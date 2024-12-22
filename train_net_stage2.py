@@ -39,9 +39,19 @@ from detectron2.utils.logger import setup_logger
 
 
 from auto_uni_seg import (
+    COCOInstanceNewBaselineDatasetMapper,
+    COCOPanopticNewBaselineDatasetMapper,
+    InstanceSegEvaluator,
+    MaskFormerInstanceDatasetMapper,
+    MaskFormerPanopticDatasetMapper,
+    MaskFormerSemanticDatasetMapper,
+    MaskFormerSemanticDatasetMapper_2,
     SemanticDatasetMapper,
+    add_maskformer2_config,
     add_hrnet_config,
     add_gnn_config,
+    add_afformer_config,
+    add_segmenter_comfig,
     LoaderAdapter,
     build_bipartite_graph_for_unseen,
     eval_for_mseg_datasets,
@@ -156,8 +166,7 @@ class Trainer(DefaultTrainer):
         elif 'bdd' in dataset_name:
             dataset_id = 3
         elif 'idd' in dataset_name:
-            # dataset_id = 4
-            dataset_id = 1
+            dataset_id = 4
         elif 'ade' in dataset_name:
             dataset_id = 5
         elif 'coco' in dataset_name:
@@ -169,7 +178,8 @@ class Trainer(DefaultTrainer):
         if '_2' in dataset_name:
             aux_mode = 'eval'
             
-        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id, datasets_name=[dataset_name])
+        # return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id, datasets_name=[dataset_name])
+        return LoaderAdapter(cfg, aux_mode=aux_mode, dataset_id=dataset_id)
 
     @classmethod
     def build_optimizer(cls, cfg, model):
@@ -277,7 +287,10 @@ def setup(args):
     # for poly lr schedule
     add_deeplab_config(cfg)
     add_hrnet_config(cfg)
+    add_afformer_config(cfg)
+    add_maskformer2_config(cfg)
     add_gnn_config(cfg)
+    add_segmenter_comfig(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()

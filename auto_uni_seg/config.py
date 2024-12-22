@@ -207,3 +207,15 @@ def add_maskformer2_config(cfg):
 
 def add_afformer_config(cfg):
     cfg.MODEL.AFFORMER_CONFIG = None
+
+def add_segmenter_comfig(cfg):
+    cfg.MODEL.BACKBONE.N_CLS = 1000
+    cfg.MODEL.SEGMENTER = CN()
+    cfg.MODEL.SEGMENTER.PATCH_SIZE = 16
+    cfg.MODEL.SEGMENTER.D_ENCODER = 192
+    cfg.MODEL.SEGMENTER.N_LAYERS = 12
+    cfg.MODEL.SEGMENTER.N_HEADS = 3
+    cfg.MODEL.SEGMENTER.D_MODEL = 192
+    cfg.MODEL.SEGMENTER.D_FF = 768
+    cfg.MODEL.SEGMENTER.DROP_PATH_RATE = 0.0
+    cfg.MODEL.SEGMENTER.DROPOUT = 0.1

@@ -379,7 +379,7 @@ class AFFormerMdsEncoderDecoder(Backbone):
                  test_cfg=None,
                  pretrained=None,
                  init_cfg=None):
-        super(AFFormerEncoderDecoder, self).__init__()
+        super(AFFormerMdsEncoderDecoder, self).__init__()
         with open(cfg.MODEL.AFFORMER_CONFIG, 'r') as f:
             aff_cfg =  f.read()
         local_namespace = {}
@@ -412,7 +412,13 @@ class AFFormerMdsEncoderDecoder(Backbone):
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
 
-        self.num_unify_class = cfg.DATASETS.NUM_UNIFY_CLASS
+        init_adj_path = cfg.MODEL.GNN.INIT_ADJ_PATH
+        if init_adj_path != None:
+            init_adj = torch.load(init_adj_path)
+            num_unify_class = init_adj.shape[1]
+        else:
+            num_unify_class = cfg.DATASETS.NUM_UNIFY_CLASS
+        self.num_unify_class = num_unify_class
         self.datasets_cats = cfg.DATASETS.DATASETS_CATS
         self.n_datasets = len(self.datasets_cats)
         self.output_feat_dim = aff_cfg['decode_head']['num_classes']
@@ -435,11 +441,48 @@ class AFFormerMdsEncoderDecoder(Backbone):
                 ))
             
 
-        self.unify_prototype = nn.Parameter(torch.zeros(num_unify_class, self.output_feat_dim),
+        self.unify_prototype = nn.Parameter(torch.zeros(self.num_unify_class, self.output_feat_dim),
                                 requires_grad=False)
         trunc_normal_(self.unify_prototype, std=0.02)
+        self.with_datasets_aux = False
         
+    def set_bipartite_graphs(self, bi_graphs):
+        
+        if len(bi_graphs) == 2 * self.n_datasets:
+            for i in range(0, self.n_datasets):
+                self.bipartite_graphs[i] = nn.Parameter(
+                    bi_graphs[2*i], requires_grad=False
+                    )
+        else:
+            # print("bi_graphs len:", len(bi_graphs))
+            for i in range(0, self.n_datasets):
+                # print("i: ", i)
+                self.bipartite_graphs[i] = nn.Parameter(
+                    bi_graphs[i], requires_grad=False
+                    )
+            
+    def req_grad(self, isFrooze):
+        for name, param in self.named_parameters():
+            if 'bipartite_graphs' in name:
+                continue
+            param.requires_grad = isFrooze
+        
+    def set_unify_prototype(self, unify_prototype, grad=False):
+        
+        if unify_prototype.shape[0] != self.unify_prototype.shape[0]:
+            self.unify_prototype.data = unify_prototype[self.total_cats:]
+            self.unify_prototype.requires_grad=grad
+            cur_cat = 0
+            if self.with_datasets_aux:
+                for i in range(self.n_datasets):
+                    self.aux_prototype[i].data = unify_prototype[cur_cat:cur_cat+self.datasets_cats[i]]
+                    cur_cat += self.datasets_cats[i]
+                    self.aux_prototype[i].requires_grad=grad
+        else:
+            self.unify_prototype.data = unify_prototype
+            self.unify_prototype.requires_grad=grad
 
+        
 
     @classmethod
     def from_config(cls, cfg, input_shape):
@@ -480,7 +523,7 @@ class AFFormerMdsEncoderDecoder(Backbone):
             x = self.neck(x)
         return x
 
-    def encode_decode(self, img, img_metas):
+    def encode_decode(self, img, img_metas, dataset_ids):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         x = self.extract_feat(img)
@@ -561,7 +604,7 @@ class AFFormerMdsEncoderDecoder(Backbone):
 
         return losses
 
-    def forward_dummy(self, img):
+    def forward_dummy(self, img, dataset_ids):
         """Dummy forward function."""
         seg_logit = self.encode_decode(img, None, dataset_ids)
 

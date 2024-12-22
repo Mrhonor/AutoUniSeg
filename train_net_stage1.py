@@ -55,6 +55,7 @@ from auto_uni_seg import (
     add_hrnet_config,
     add_gnn_config,
     add_afformer_config,
+    add_segmenter_comfig,
     LoaderAdapter,
     build_bipartite_graph_for_unseen,
     eval_for_mseg_datasets,
@@ -386,6 +387,7 @@ def setup(args):
     add_afformer_config(cfg)
     add_maskformer2_config(cfg)
     add_gnn_config(cfg)
+    add_segmenter_comfig(cfg)
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
@@ -422,8 +424,8 @@ def main(args):
         # return
     
     trainer = Trainer(cfg)
-    # trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
-    trainer.register_hooks([iter_info_hook()])
+    trainer.register_hooks([iter_info_hook(), UniDetLearnUnifyLabelSpace()])
+    # trainer.register_hooks([iter_info_hook()])
     trainer.resume_or_load(resume=args.resume)
     return trainer.train()
 

@@ -619,6 +619,7 @@ class CLS(BaseDecodeHead):
             "channels": aff_cfg['decode_head']['channels'],
             "aff_channels": aff_cfg['decode_head']['aff_channels'],
             "dropout_ratio": aff_cfg['decode_head']['dropout_ratio'],
+            # "num_classes": aff_cfg['decode_head']['num_classes'],
             "num_classes": aff_cfg['decode_head']['num_classes'],
             "norm_cfg": aff_cfg['decode_head']['norm_cfg'],
             "align_corners": aff_cfg['decode_head']['align_corners'],
@@ -630,5 +631,6 @@ class CLS(BaseDecodeHead):
 
         x = self.squeeze(inputs)
             
-        output = self.cls_seg(x)
-        return output
+        return x
+        # output = self.cls_seg(x)
+        # return output

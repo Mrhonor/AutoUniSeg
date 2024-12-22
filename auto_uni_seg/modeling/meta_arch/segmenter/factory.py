@@ -269,22 +269,25 @@ class SegmenterMaskTransformerMulhead(nn.Module):
                 
 @BACKBONE_REGISTRY.register()
 class VisionTransformerBackbone(Backbone):
-    @configurable
+    
     def __init__(
         self,
-        image_size,
-        patch_size,
-        n_layers,
-        d_model,
-        d_ff,
-        n_heads,
-        n_cls,
-        dropout=0.1,
-        drop_path_rate=0.0,
+        cfg,
+        input_shape,
         distilled=False,
         channels=3,
     ):
-        super().__init__()
+        super(VisionTransformerBackbone, self).__init__()
+        image_size = cfg.INPUT.CROP.SIZE
+        n_cls = cfg.MODEL.BACKBONE.N_CLS
+        patch_size = cfg.MODEL.SEGMENTER.PATCH_SIZE
+        d_encoder = cfg.MODEL.SEGMENTER.D_ENCODER
+        n_layers = cfg.MODEL.SEGMENTER.N_LAYERS
+        n_heads = cfg.MODEL.SEGMENTER.N_HEADS
+        d_model = cfg.MODEL.SEGMENTER.D_MODEL
+        d_ff = cfg.MODEL.SEGMENTER.D_FF
+        drop_path_rate = cfg.MODEL.SEGMENTER.DROP_PATH_RATE
+        dropout = cfg.MODEL.SEGMENTER.DROPOUT
         self.patch_embed = PatchEmbedding(
             image_size,
             patch_size,
@@ -413,30 +416,30 @@ class VisionTransformerBackbone(Backbone):
             else:
                 return blk(x, return_attention=True)
     
-    @classmethod
-    def from_config(cls, cfg):
-        image_size = cfg.INPUT.CROP.SIZE
-        n_cls = cfg.DATASETS.NUM_UNIFY_CLASS
-        patch_size = cfg.MODEL.SEGMENTER.PATCH_SIZE
-        d_encoder = cfg.MODEL.SEGMENTER.D_ENCODER
-        n_layers = cfg.MODEL.SEGMENTER.N_LAYERS
-        n_heads = cfg.MODEL.SEGMENTER.N_HEADS
-        d_model = cfg.MODEL.SEGMENTER.D_MODEL
-        d_ff = cfg.MODEL.SEGMENTER.D_FF
-        drop_path_rate = cfg.MODEL.SEGMENTER.DROP_PATH_RATE
-        dropout = cfg.MODEL.SEGMENTER.DROPOUT
+    # @classmethod
+    # def from_config(cls, cfg, input_shape):
+    #     image_size = cfg.INPUT.CROP.SIZE
+    #     n_cls = cfg.MODEL.BACKBONE.N_CLS
+    #     patch_size = cfg.MODEL.SEGMENTER.PATCH_SIZE
+    #     d_encoder = cfg.MODEL.SEGMENTER.D_ENCODER
+    #     n_layers = cfg.MODEL.SEGMENTER.N_LAYERS
+    #     n_heads = cfg.MODEL.SEGMENTER.N_HEADS
+    #     d_model = cfg.MODEL.SEGMENTER.D_MODEL
+    #     d_ff = cfg.MODEL.SEGMENTER.D_FF
+    #     drop_path_rate = cfg.MODEL.SEGMENTER.DROP_PATH_RATE
+    #     dropout = cfg.MODEL.SEGMENTER.DROPOUT
 
-        return {
-        "image_size": image_size, 
-        "n_cls": n_cls, 
-        "patch_size": patch_size, 
-        "d_encoder": d_encoder, 
-        "n_layers": n_layers, 
-        "n_heads": n_heads, 
-        "d_model": d_model, 
-        "d_ff": d_ff, 
-        "drop_path_rate": drop_path_rate, 
-        "dropout": dropout
-        }
+    #     return {
+    #     "image_size": image_size, 
+    #     "n_cls": n_cls, 
+    #     "patch_size": patch_size, 
+    #     "d_encoder": d_encoder, 
+    #     "n_layers": n_layers, 
+    #     "n_heads": n_heads, 
+    #     "d_model": d_model, 
+    #     "d_ff": d_ff, 
+    #     "drop_path_rate": drop_path_rate, 
+    #     "dropout": dropout
+    #     }
 
         

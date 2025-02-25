@@ -1,7 +1,7 @@
 _BASE_: Base_SemanticSegmentation_hrnet.yaml
 MODEL:
   META_ARCHITECTURE: "HRNet_W48_Finetune_ARCH"
-  WEIGHTS: "output/7ds_hrnet_relation_gnn_model_final.pth"
+  WEIGHTS: "output/7ds_hrnet_relation_fixbug_model_gnn.pth"
   PRETRAINING: False
   SEM_SEG_HEAD:
     NAME: "HRNet_W48_llama"
@@ -27,5 +27,5 @@ MODEL:
     GNN_ITERS: 20000
     SEG_ITERS: 20000
     FIRST_STAGE_GNN_ITERS: 15000
-    FINETUNE_STAGE1_ITERS: 100000
+    FINETUNE_STAGE1_ITERS: 50000
     INIT_ADJ_PATH: "output/init_adj_7_datasets_2.pt"

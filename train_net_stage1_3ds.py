@@ -269,7 +269,7 @@ class Trainer(DefaultTrainer):
         elif 'ade' in dataset_name:
             dataset_id = 0
         elif 'coco' in dataset_name:
-            dataset_id = 6
+            dataset_id = 0
         else:
             dataset_id = 0
 

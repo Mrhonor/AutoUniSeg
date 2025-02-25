@@ -631,6 +631,6 @@ class CLS(BaseDecodeHead):
 
         x = self.squeeze(inputs)
             
-        return x
-        # output = self.cls_seg(x)
-        # return output
+        # return x
+        output = self.cls_seg(x)
+        return output

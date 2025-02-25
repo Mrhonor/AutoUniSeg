@@ -192,7 +192,7 @@ class HRNet_W48_ARCH(nn.Module):
         
         n_points = cfg.MODEL.GNN.N_POINTS
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 5, "loss_ce6": 5, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 10}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 100}
         # loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 3, "loss_ce5": 3, "loss_ce6": 1, "loss_aux0": 1, "loss_aux1": 2, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 3, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10}
         return {
             'backbone': backbone,
@@ -500,7 +500,10 @@ class HRNet_W48_ARCH(nn.Module):
         if self.with_relation_loss and self.train_seg_or_gnn == self.GNN:
             decay_weight = 1 - self.iters / self.max_iters
             relation_base_weight = decay_weight / (self.n_datasets * (self.n_datasets - 1) / 2)
-            losses['loss_relation'] = relation_base_weight * relation_loss(adj_matrix, self.datasets_cats, self.relation_gt_graph)
+            if len(bi_graphs)==2*self.n_datasets:
+                losses['loss_relation'] = relation_base_weight * relation_loss(bi_graphs[1::2], self.datasets_cats, self.relation_gt_graph)
+            else:
+                losses['loss_relation'] = relation_base_weight * relation_loss(bi_graphs, self.datasets_cats, self.relation_gt_graph)
                
 
         if self.with_orth_loss and self.train_seg_or_gnn == self.GNN:

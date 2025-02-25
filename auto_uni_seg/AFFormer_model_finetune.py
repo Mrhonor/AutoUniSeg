@@ -61,6 +61,7 @@ class AFFormer_Finetune_ARCH(nn.Module):
                  loss_weight_dict,
                  ohem_thresh,
                  ignore_lb,
+                 init_adj_path,
                  ):
         super(AFFormer_Finetune_ARCH, self).__init__()
         self.seg_model = seg_model
@@ -118,6 +119,10 @@ class AFFormer_Finetune_ARCH(nn.Module):
         self.with_datasets_aux = False
         if self.with_gaussian_loss:
             self.gaussian_loss = MdsOWLoss(self.num_unify_classes, self.n_datasets, ignore_index=self.ignore_lb)
+            
+        if init_adj_path != None and True:
+            self.init_adj = torch.load(init_adj_path).cuda()
+            
 
     @classmethod
     def from_config(cls, cfg):
@@ -148,8 +153,15 @@ class AFFormer_Finetune_ARCH(nn.Module):
             assert cfg.DATASETS.RELATION_GRAPH is not None, "relation graph is None"
             with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
                 relation_gt_graph = pickle.load(file)
+        
+        init_adj_path = cfg.MODEL.GNN.INIT_ADJ_PATH
+        if init_adj_path != None:
+            init_adj = torch.load(init_adj_path)
+            num_unify_class = init_adj.shape[1]
+        else:
+            num_unify_class = cfg.DATASETS.NUM_UNIFY_CLASS
 
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 2, "loss_ce6": 2, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
         ignore_lb = cfg.DATASETS.IGNORE_LB
         ohem_thresh = cfg.LOSS.OHEM_THRESH
  
@@ -160,7 +172,7 @@ class AFFormer_Finetune_ARCH(nn.Module):
             "pixel_std": cfg.MODEL.PIXEL_STD,
             'datasets_cats': cfg.DATASETS.DATASETS_CATS,
             "size_divisibility": cfg.INPUT.SIZE_DIVISIBILITY,
-            "num_unify_classes": cfg.DATASETS.NUM_UNIFY_CLASS,
+            "num_unify_classes": num_unify_class,
             "graph_node_features": graph_node_features,
             "init_gnn_iters": init_gnn_iters,
             "Pretraining": Pretraining,
@@ -178,6 +190,7 @@ class AFFormer_Finetune_ARCH(nn.Module):
             "loss_weight_dict": loss_weight_dict,     
             'ignore_lb': ignore_lb,
             'ohem_thresh': ohem_thresh,       
+            'init_adj_path': init_adj_path,
         }
 
     def forward(self, batched_inputs):
@@ -206,6 +219,7 @@ class AFFormer_Finetune_ARCH(nn.Module):
 
 
         if self.training:
+            self.env_init()
 
             outputs = self.seg_model(images.tensor, None, None, dataset_lbs, False)
                             
@@ -224,6 +238,7 @@ class AFFormer_Finetune_ARCH(nn.Module):
                     losses[k] *= self.loss_weight_dict[k]
             return losses
         else:
+
             
             outputs = self.seg_model(images.tensor, None, None, dataset_lbs, False)
                             
@@ -233,10 +248,15 @@ class AFFormer_Finetune_ARCH(nn.Module):
             for logit, input_per_image, image_size, uni_logits in zip(outputs['logits'], batched_inputs, images.image_sizes, outputs['uni_logits']):
                 height = input_per_image.get("height", image_size[0])
                 width = input_per_image.get("width", image_size[1])
-                logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
-                uni_logits = retry_if_cuda_oom(sem_seg_postprocess)(uni_logits, image_size, height, width)
+       
+                logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                # logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
+                # uni_logits = F.interpolate(uni_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                # uni_logits = F.interpolate(uni_logits, size=(height, width), mode="bilinear", align_corners=True)
+                # uni_logits = retry_if_cuda_oom(sem_seg_postprocess)(uni_logits, image_size, height, width)
                 # logger.info(f"logit shape:{logit.shape}")
-                processed_results.append({"sem_seg": logit, "uni_logits": uni_logits})
+                # processed_results.append({"sem_seg": logit[0], "uni_logits": uni_logits[0]})
+                processed_results.append({"sem_seg": logit[0]})
 
             return processed_results
             
@@ -250,24 +270,31 @@ class AFFormer_Finetune_ARCH(nn.Module):
     def set_dataset_adapter(self, dataset_adapter):
         self.dataset_adapter = dataset_adapter
 
-    def env_init(self, iters):
+    def env_init(self):
         if self.initial == False:
             logger.info(f"initial: finetune_stage: {self.finetune_stage}")
-            self.backbone.req_grad(True)
-            self.proj_head.req_grad(True)
-            self.gnn_model.req_grad(False)
-            self.backbone.train()
-            self.proj_head.train()
-            self.gnn_model.eval()
+            # self.backbone.req_grad(True)
+            # self.proj_head.req_grad(True)
+            # self.gnn_model.req_grad(False)
+            # self.backbone.train()
+            # self.proj_head.train()
+            # self.gnn_model.eval()
             self.initial = True
+            bi_graphs = []
+            n_cats = 0
+            for i in range(0, self.n_datasets):
+                bi_graphs.append(self.init_adj[n_cats:n_cats+self.datasets_cats[i],:])
+                n_cats += self.datasets_cats[i]
+                
+            self.seg_model.set_bipartite_graphs(bi_graphs)
 
-        if int(self.proto_init) == 0:
-            logger.info(f"initial: finetune_stage: {self.finetune_stage}")
-            self.gnn_model.set_init_stage(False)
-            unify_prototype, bi_graphs = self.gnn_model.get_optimal_matching(self.graph_node_features, True)
-            self.proj_head.set_bipartite_graphs(bi_graphs)
-            self.proj_head.set_unify_prototype(unify_prototype.detach().float(), grad=True)
-            self.proto_init.data = torch.ones(1)
+        # if int(self.proto_init) == 0:
+        #     logger.info(f"initial: finetune_stage: {self.finetune_stage}")
+        #     self.gnn_model.set_init_stage(False)
+        #     unify_prototype, bi_graphs = self.gnn_model.get_optimal_matching(self.graph_node_features, True)
+        #     self.proj_head.set_bipartite_graphs(bi_graphs)
+        #     self.proj_head.set_unify_prototype(unify_prototype.detach().float(), grad=True)
+        #     self.proto_init.data = torch.ones(1)
 
 
     def change_to_seg(self):
@@ -371,14 +398,14 @@ class AFFormer_Finetune_ARCH(nn.Module):
         
         if len(bi_graphs) == 2 * self.n_datasets:
             for i in range(0, self.n_datasets):
-                self.bipartite_graphs[i] = nn.Parameter(
+                self.seg_model.bipartite_graphs[i] = nn.Parameter(
                     bi_graphs[2*i], requires_grad=False
                     )
         else:
             # print("bi_graphs len:", len(bi_graphs))
             for i in range(0, self.n_datasets):
                 # print("i: ", i)
-                self.bipartite_graphs[i] = nn.Parameter(
+                self.seg_model.bipartite_graphs[i] = nn.Parameter(
                     bi_graphs[i], requires_grad=False
                     )
             

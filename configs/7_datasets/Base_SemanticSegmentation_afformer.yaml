@@ -2,7 +2,7 @@ MODEL:
   BACKBONE:
     FREEZE_AT: 0
     NAME: "AFFormerMulheadEncoderDecoder"
-  WEIGHTS: "output/7ds_afformer_mulhead_model_final.pth"
+  WEIGHTS: "output/aff_tiny_mulhead_900k_model_final.pth"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   AUX_MODE: "train"
@@ -11,7 +11,7 @@ MODEL:
 DATASETS:
   TRAIN: ("cs_sem_seg_train", "mapi_sem_seg_train", "sunrgbd_sem_seg_train", "bdd_sem_seg_train", "idd_sem_seg_train", "ade_sem_seg_train", "coco_sem_seg_train")
   EVAL: ("cs_sem_seg_train_2", "mapi_sem_seg_train_2", "sunrgbd_sem_seg_train_2", "bdd_sem_seg_train_2", "idd_sem_seg_train_2", "ade_sem_seg_train_2", "coco_sem_seg_train_2")
-  TEST: ("cs_sem_seg_val", "sunrgbd_sem_seg_val", "bdd_sem_seg_val", "idd_sem_seg_val", "ade_sem_seg_val", "coco_sem_seg_val")
+  TEST: ("cs_sem_seg_val", "mapi_sem_seg_val", "sunrgbd_sem_seg_val", "bdd_sem_seg_val", "idd_sem_seg_val", "ade_sem_seg_val", "coco_sem_seg_val")
   DATASETS_CATS: [19, 64, 37, 19, 26, 150, 133]
   IGNORE_LB: 255
   NUM_UNIFY_CLASS: 448
@@ -22,14 +22,14 @@ LOSS:
   WITH_SPA_LOSS: True
   WITH_ORTH_LOSS: True
   WITH_ADJ_LOSS: False
-  WITH_RELATION_LOSS: False
+  WITH_RELATION_LOSS: True
   WITH_GAUSSIAN_LOSS: False
 SOLVER:
-  IMS_PER_BATCH: 16
-  BASE_LR: 0.0001
-  MAX_ITER: 240000
+  IMS_PER_BATCH: 8  
+  BASE_LR: 0.00005
+  MAX_ITER: 800000
   WARMUP_FACTOR: 1.0
-  WARMUP_ITERS: 1000
+  WARMUP_ITERS: 5000
   WEIGHT_DECAY: 0.05
   OPTIMIZER: "ADAMW"
   LR_SCHEDULER_NAME: "WarmupPolyLR"
@@ -57,7 +57,7 @@ INPUT:
   FORMAT: "RGB"
   DATASET_MAPPER_NAME: "BASE"
 TEST:
-  EVAL_PERIOD: 240000
+  EVAL_PERIOD: 800000
   AUG:
     ENABLED: False
     MIN_SIZES: [256, 384, 512, 640, 768, 896, 512, 768, 1024, 1280, 1536, 1792]

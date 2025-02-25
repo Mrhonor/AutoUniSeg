@@ -225,7 +225,7 @@ class HRNet_W48_Finetune_ARCH(nn.Module):
                 
                 
                 # logit = F.interpolate(logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
-                logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
+                # logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
                 # print(logit.shape)
                 # uni_logits = logit
                 # uni_logits = retry_if_cuda_oom(F.interpolate)(uni_logits, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
@@ -259,9 +259,9 @@ class HRNet_W48_Finetune_ARCH(nn.Module):
                 # output.scatter_(0, preds, 1)
                 # logit = output
                 # logger.info(f"logit shape:{logit.shape}")
-                processed_results.append({"sem_seg": logit, "uni_logits": uni_logits})
+                # processed_results.append({"sem_seg": logit, "uni_logits": uni_logits})
                 # processed_results.append({"sem_seg": logit})
-                # processed_results.append({"uni_logits": uni_logits})
+                processed_results.append({"uni_logits": uni_logits})
             return processed_results                      
 
     def env_init(self):

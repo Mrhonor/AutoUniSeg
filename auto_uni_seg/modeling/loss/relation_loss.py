@@ -32,21 +32,21 @@ def relation_loss(M, dataset_cats, gt):
     cur_cat = 0
     n_datasets = len(dataset_cats)
     
-    out_adj = []
-    for i in range(0, n_datasets):
-        this_bipartite_graph = adj_mI[cur_cat:cur_cat+dataset_cats[i], :].T
+    # out_adj = []
+    # for i in range(0, n_datasets):
+    #     this_bipartite_graph = adj_mI[cur_cat:cur_cat+dataset_cats[i], :].T
 
-        # softmax_bipartite_graph = F.softmax(this_bipartite_graph/0.07, dim=0)
+    #     # softmax_bipartite_graph = F.softmax(this_bipartite_graph/0.07, dim=0)
 
-        out_adj.append(this_bipartite_graph)
-        cur_cat = cur_cat+dataset_cats[i]
+    #     out_adj.append(this_bipartite_graph)
+    #     cur_cat = cur_cat+dataset_cats[i]
         
     loss = torch.tensor(0.0, device='cuda')
     for i in range(0, n_datasets-1):
         for j in range(i+1, n_datasets):
             gt[i][j] = gt[i][j].cuda()
             
-            loss += calculate_loss_torch(out_adj[i], out_adj[j], gt[i][j])
+            loss += calculate_loss_torch(adj_mI[i].T, adj_mI[j].T, gt[i][j])
     return loss
             
     

@@ -2,12 +2,12 @@ MODEL:
   BACKBONE:
     FREEZE_AT: 0
     NAME: "AFFormerMulheadEncoderDecoder"
-  WEIGHTS: "output/AFFormer_base_ImageNet1k_remap.pth"
+  WEIGHTS: "output/AFFormer_tiny_ImageNet1k_remap.pth"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   AUX_MODE: "train"
   PRETRAINING: True
-  AFFORMER_CONFIG: 'configs/AFFormer_base_cityscapes.py'
+  AFFORMER_CONFIG: 'configs/AFFormer_tiny_cityscapes.py'
 DATASETS:
   TRAIN: ("idd_sem_seg_train", )
   EVAL: ("idd_sem_seg_train_2", )
@@ -56,7 +56,7 @@ INPUT:
   FORMAT: "RGB"
   DATASET_MAPPER_NAME: "BASE"
 TEST:
-  EVAL_PERIOD: 300000
+  EVAL_PERIOD: 500000
   AUG:
     ENABLED: False
     MIN_SIZES: [256, 384, 512, 640, 768, 896, 512, 768, 1024, 1280, 1536, 1792]

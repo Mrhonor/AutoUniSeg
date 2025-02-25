@@ -148,7 +148,7 @@ class AFFormer_ARCH(nn.Module):
             with open(cfg.DATASETS.RELATION_GRAPH, "rb") as file:
                 relation_gt_graph = pickle.load(file)
 
-        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 2, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 1, "loss_ce5": 3, "loss_ce6": 3, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 3, "loss_aux6": 1, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 1}
+        loss_weight_dict = {"loss_ce0": 1, "loss_ce1": 3, "loss_ce2": 1, "loss_ce3": 1, "loss_ce4": 3, "loss_ce5": 2, "loss_ce6": 2, "loss_aux0": 1, "loss_aux1": 3, "loss_aux2": 1, "loss_aux3": 1, "loss_aux4": 1, "loss_aux5": 2, "loss_aux6": 2, "loss_spa": 0.001, "loss_adj":1, "loss_orth":10, "loss_relation": 100}
         ignore_lb = cfg.DATASETS.IGNORE_LB
         ohem_thresh = cfg.LOSS.OHEM_THRESH
  
@@ -230,12 +230,13 @@ class AFFormer_ARCH(nn.Module):
                     logit = retry_if_cuda_oom(sem_seg_postprocess)(logit, image_size, height, width)
                     # print("uni_logit1: ", uni_logit.shape)
 
-                    uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
+                    # uni_logit = F.interpolate(uni_logit, size=(images.tensor.shape[2], images.tensor.shape[3]), mode="bilinear", align_corners=True)
                     # print("uni_logit2: ", uni_logit.shape)
                     # uni_logit = retry_if_cuda_oom(sem_seg_postprocess)(uni_logit, image_size, height, width)
                     # print("uni_logit3: ", uni_logit.shape)
 
-                    processed_results.append({"sem_seg": logit, "uni_logits":uni_logit[0]})
+                    # processed_results.append({"sem_seg": logit, "uni_logits":uni_logit[0]})
+                    processed_results.append({"sem_seg": logit})
                 return processed_results
         else:
             if self.training:
@@ -412,7 +413,10 @@ class AFFormer_ARCH(nn.Module):
         if self.with_relation_loss and self.train_seg_or_gnn == self.GNN:
             decay_weight = 1 - self.iters / self.max_iters
             relation_base_weight = decay_weight / (self.n_datasets * (self.n_datasets - 1) / 2)
-            losses['loss_relation'] = relation_base_weight * relation_loss(adj_matrix, self.datasets_cats, self.relation_gt_graph)
+            if len(bi_graphs)==2*self.n_datasets:
+                losses['loss_relation'] = relation_base_weight * relation_loss(bi_graphs[1::2], self.datasets_cats, self.relation_gt_graph)
+            else:
+                losses['loss_relation'] = relation_base_weight * relation_loss(bi_graphs, self.datasets_cats, self.relation_gt_graph)
                
 
         if self.with_orth_loss and self.train_seg_or_gnn == self.GNN:

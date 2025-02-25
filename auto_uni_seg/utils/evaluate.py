@@ -573,6 +573,7 @@ class find_unuse_hook(HookBase):
                                     x["sem_seg"] = F.interpolate(x["sem_seg"].float()[None][None], size=(int(im.shape[-2]*0.5), int(im.shape[-1]*0.5)), mode='nearest').squeeze().long()
                                     x["height"] = int(x["height"]*0.5)
                                     x["width"] = int(x["width"]*0.5)
+
                             start_compute_time = time.perf_counter()
                             dict.get(callbacks or {}, "before_inference", lambda: None)()
                             outputs = model(inputs)
@@ -595,7 +596,7 @@ class find_unuse_hook(HookBase):
                                 preds = torch.argmax(probs, dim=1)
                                                    
                                 keep = lb != ignore_label
-
+                                
                                 hist += torch.tensor(np.bincount(
                                     lb.cpu().numpy()[keep.cpu().numpy()] * num_unify_class + preds.cpu().numpy()[keep.cpu().numpy()],
                                     minlength=n_classes * num_unify_class

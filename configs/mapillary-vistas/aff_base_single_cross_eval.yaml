@@ -9,7 +9,7 @@ MODEL:
   PRETRAINING: True
   AFFORMER_CONFIG: 'configs/AFFormer_base_cityscapes.py'
 DATASETS:
-  TRAIN: ("mapi_sem_seg_train_2", )
+  TRAIN: ("mapi_sem_seg_train", )
   EVAL: ("mapi_sem_seg_train_2", )
   TEST: ("mapi_sem_seg_val", )
   DATASETS_CATS: [64]

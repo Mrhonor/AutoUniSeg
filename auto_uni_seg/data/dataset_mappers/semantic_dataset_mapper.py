@@ -44,16 +44,17 @@ class SemanticDatasetMapper:
         self.ignore_label = ignore_label
         self.size_divisibility = size_divisibility
         self.should_lookup_table = should_lookup_table
-        logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
         if self.should_lookup_table:
             self.lb_map = np.arange(256).astype(np.uint8)
             for k, v in lookup_table.items():
                 self.lb_map[k] = v
+
             # self.lb_map = torch.tensor(self.lb_map)
 
         
         mode = "training" if is_train else "inference"
-        logger.info(f"[{self.__class__.__name__}] Augmentations used in {mode}: {augmentations}")
+        self.logger.info(f"[{self.__class__.__name__}] Augmentations used in {mode}: {augmentations}")
 
     @classmethod
     def from_config(cls, cfg, is_train=True, dataset_id=0, should_lookup_table=False):
@@ -165,9 +166,15 @@ class SemanticDatasetMapper:
             
             if self.should_lookup_table:
                 sem_seg_gt = sem_seg_gt.long()
+                # print(f"sem_seg_gt_max_ori {np.max(sem_seg_gt.cpu().numpy())}", flush=True)
                 sem_seg_gt = self.lb_map[sem_seg_gt]
                 
                 dataset_dict["sem_seg"] = torch.as_tensor(sem_seg_gt).long()
+                # keep = dataset_dict["sem_seg"] != 255
+                # temp = dataset_dict["sem_seg"]
+                
+                # print("lb_map:  ", self.lb_map, flush=True)
+                # print(f"sem_seg_gt_max {np.max(temp.cpu().numpy()[keep.cpu().numpy()])}", flush=True)
             else:
                 dataset_dict["sem_seg"] = sem_seg_gt.long()
 

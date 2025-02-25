@@ -2,12 +2,12 @@ MODEL:
   BACKBONE:
     FREEZE_AT: 0
     NAME: "AFFormerMulheadEncoderDecoder"
-  WEIGHTS: "output/AFFormer_base_ImageNet1k_remap.pth"
+  WEIGHTS: "output/AFFormer_tiny_ImageNet1k_remap.pth"
   PIXEL_MEAN: [123.675, 116.280, 103.530]
   PIXEL_STD: [58.395, 57.120, 57.375]
   AUX_MODE: "train"
   PRETRAINING: True
-  AFFORMER_CONFIG: 'configs/AFFormer_base_cityscapes.py'
+  AFFORMER_CONFIG: 'configs/AFFormer_tiny_cityscapes.py'
 DATASETS:
   TRAIN: ("coco_sem_seg_train", )
   EVAL: ("coco_sem_seg_train_2", )
@@ -26,7 +26,7 @@ LOSS:
 SOLVER:
   IMS_PER_BATCH: 16
   BASE_LR: 0.0003
-  MAX_ITER: 160000
+  MAX_ITER: 80000
   WARMUP_FACTOR: 1.0
   WARMUP_ITERS: 1500
   WEIGHT_DECAY: 0.01

@@ -52,6 +52,7 @@ from auto_uni_seg import (
     MaskFormerSemanticDatasetMapper_2,
     SemanticDatasetMapper,
     add_maskformer2_config,
+    add_setr_config,
     add_hrnet_config,
     add_gnn_config,
     add_afformer_config,

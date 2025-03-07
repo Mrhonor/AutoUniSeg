@@ -1,0 +1,87 @@
+MODEL:
+  BACKBONE:
+    FREEZE_AT: 0
+    NAME: "vit_large_patch16_384"
+    img_size: 768
+    patch_size: 16
+    in_chans: 3
+    embed_dim: 1024
+    depth: 24
+    num_heads: 16
+    num_classes: 19
+    mlp_ratio: 4
+    qkv_bias: True
+    qk_scale: None
+    drop_rate: 0.1
+    attn_drop_rate: 0
+    drop_path_rate: 0.
+    hybrid_backbone: None
+    # norm_layer: partial(nn.LayerNorm, eps=1e-6)
+    norm_cfg: None
+    pos_embed_interp: False
+    random_init: False
+    align_corners: False
+  WEIGHTS: "output/jx_vit_large_p16_384-b3be5167_remap.pth"
+  PIXEL_MEAN: [123.675, 116.280, 103.530]
+  PIXEL_STD: [58.395, 57.120, 57.375]
+  AUX_MODE: "train"
+  PRETRAINING: True
+DATASETS:
+  TRAIN: ("cs_sem_seg_train", "mapi_sem_seg_train", "sunrgbd_sem_seg_train", "bdd_sem_seg_train", "idd_sem_seg_train", "ade_sem_seg_train", "coco_sem_seg_train")
+  EVAL: ("cs_sem_seg_train_2", "mapi_sem_seg_train_2", "sunrgbd_sem_seg_train_2", "bdd_sem_seg_train_2", "idd_sem_seg_train_2", "ade_sem_seg_train_2", "coco_sem_seg_train_2")
+  TEST: ("cs_sem_seg_val","mapi_sem_seg_val", "sunrgbd_sem_seg_val", "bdd_sem_seg_val", "idd_sem_seg_val", "ade_sem_seg_val", "coco_sem_seg_val")
+  DATASETS_CATS: [19, 64, 37, 19, 26, 150, 133]
+  IGNORE_LB: 255
+  NUM_UNIFY_CLASS: 448
+  CONFIGER: 'configs/ltbgnn_7_datasets_gpt.json'
+  RELATION_GRAPH: 'output/gt_relation_graph_7ds.pickle'
+LOSS:
+  OHEM_THRESH: 0.7 
+  WITH_SPA_LOSS: True
+  WITH_ORTH_LOSS: True
+  WITH_ADJ_LOSS: False
+  WITH_RELATION_LOSS: False
+  WITH_GAUSSIAN_LOSS: False
+SOLVER:
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.0001
+  MAX_ITER: 800000
+  WARMUP_FACTOR: 1.0
+  WARMUP_ITERS: 1000
+  WEIGHT_DECAY: 0.05
+  OPTIMIZER: "ADAMW"
+  LR_SCHEDULER_NAME: "WarmupPolyLR"
+  BACKBONE_MULTIPLIER: 0.1
+  CLIP_GRADIENTS:
+    ENABLED: True
+    CLIP_TYPE: "full_model"
+    CLIP_VALUE: 0.01
+    NORM_TYPE: 2.0
+  AMP:
+    ENABLED: True
+INPUT:
+  MIN_SIZE_TRAIN: !!python/object/apply:eval ["[int(x * 0.1 * 512) for x in range(5, 41)]"]
+  MIN_SIZE_TRAIN_SAMPLING: "choice"
+  MIN_SIZE_TEST: 512
+  MAX_SIZE_TRAIN: 4096
+  MAX_SIZE_TEST: 4096
+  CROP:
+    ENABLED: True
+    TYPE: "absolute"
+    SIZE: (768, 768)
+    SINGLE_CATEGORY_MAX_AREA: 0.8
+  COLOR_AUG_SSD: True
+  SIZE_DIVISIBILITY: -1
+  FORMAT: "RGB"
+  DATASET_MAPPER_NAME: "BASE"
+TEST:
+  EVAL_PERIOD: 400000
+  AUG:
+    ENABLED: False
+    MIN_SIZES: [256, 384, 512, 640, 768, 896, 512, 768, 1024, 1280, 1536, 1792]
+    MAX_SIZE: 4096
+    FLIP: True
+DATALOADER:
+  FILTER_EMPTY_ANNOTATIONS: True
+  NUM_WORKERS: 4
+VERSION: 2

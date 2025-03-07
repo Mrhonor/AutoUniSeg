@@ -208,7 +208,7 @@ def add_maskformer2_config(cfg):
 def add_afformer_config(cfg):
     cfg.MODEL.AFFORMER_CONFIG = None
 
-def add_segmenter_comfig(cfg):
+def add_segmenter_config(cfg):
     cfg.MODEL.BACKBONE.N_CLS = 1000
     cfg.MODEL.SEGMENTER = CN()
     cfg.MODEL.SEGMENTER.PATCH_SIZE = 16
@@ -219,3 +219,34 @@ def add_segmenter_comfig(cfg):
     cfg.MODEL.SEGMENTER.D_FF = 768
     cfg.MODEL.SEGMENTER.DROP_PATH_RATE = 0.0
     cfg.MODEL.SEGMENTER.DROPOUT = 0.1
+
+    
+def add_setr_comfig(cfg):
+    cfg.MODEL.BACKBONE.img_size = 384
+    cfg.MODEL.BACKBONE.patch_size = 16
+    cfg.MODEL.BACKBONE.in_chans = 3
+    cfg.MODEL.BACKBONE.embed_dim = 1024
+    cfg.MODEL.BACKBONE.depth = 24
+    cfg.MODEL.BACKBONE.num_heads = 16
+    cfg.MODEL.BACKBONE.num_classes = 19
+    cfg.MODEL.BACKBONE.mlp_ratio = 4
+    cfg.MODEL.BACKBONE.qkv_bias = True
+    cfg.MODEL.BACKBONE.qk_scale = None
+    cfg.MODEL.BACKBONE.drop_rate = 0.1
+    cfg.MODEL.BACKBONE.attn_drop_rate = 0
+    cfg.MODEL.BACKBONE.drop_path_rate = 0.
+    cfg.MODEL.BACKBONE.hybrid_backbone = None
+    cfg.MODEL.BACKBONE.norm_cfg = None
+    cfg.MODEL.BACKBONE.pos_embed_interp = False
+    cfg.MODEL.BACKBONE.random_init = False
+    cfg.MODEL.BACKBONE.align_corners = False
+    cfg.MODEL.SEM_SEG_HEAD.img_size = 768
+    cfg.MODEL.SEM_SEG_HEAD.norm_cfg = None
+    cfg.MODEL.SEM_SEG_HEAD.num_conv = 1
+    cfg.MODEL.SEM_SEG_HEAD.upsampling_method = 'bilinear'
+    cfg.MODEL.SEM_SEG_HEAD.num_upsampe_layer = 1
+    cfg.MODEL.SEM_SEG_HEAD.conv3x3_conv1x1 = True
+    cfg.MODEL.SEM_SEG_HEAD.OUTPUT_FEAT_DIM = 512
+    cfg.MODEL.MODEL.SEM_SEG_HEAD.in_channels = 1024
+    cfg.MODEL.MODEL.SEM_SEG_HEAD.channels = 512
+    cfg.MODEL.MODEL.SEM_SEG_HEAD.in_index = -1

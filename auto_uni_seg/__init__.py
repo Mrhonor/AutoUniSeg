@@ -2,7 +2,7 @@ from . import data  # register all new datasets
 from . import modeling
 
 # config
-from .config import add_maskformer2_config, add_hrnet_config, add_gnn_config, add_afformer_config, add_segmenter_comfig
+from .config import add_maskformer2_config, add_hrnet_config, add_gnn_config, add_afformer_config, add_segmenter_config, add_setr_config
 
 # dataset loading
 from .data.dataset_mappers.semantic_dataset_mapper import SemanticDatasetMapper
@@ -29,6 +29,7 @@ from .AFFormer_model import AFFormer_ARCH
 from .AFFormer_model_finetune import AFFormer_Finetune_ARCH
 from .mds_maskformer_model import MdsMaskFormer
 from .Segmenter_model import Segmenter_ARCH
+from .Setr_model import Setr_ARCH
 
 # evaluation
 from .evaluation.instance_evaluation import InstanceSegEvaluator

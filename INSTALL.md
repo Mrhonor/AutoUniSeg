@@ -19,6 +19,8 @@ pip install -U opencv-python
 git clone git@github.com:facebookresearch/detectron2.git
 cd detectron2
 pip install -e .
+cd auto_uni_seg/modeling/pixel_decoder/ops
+sh make.sh
 
 # under this directory
 pip install -r requirements.txt

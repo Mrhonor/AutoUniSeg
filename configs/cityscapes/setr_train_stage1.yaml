@@ -1,9 +1,9 @@
-_BASE_: Base_SemanticSegmentation_setr_base.yaml
+_BASE_: Base_SemanticSegmentation_setr.yaml
 MODEL:
   META_ARCHITECTURE: "Setr_ARCH"
   SEM_SEG_HEAD:
     NAME: "VisionTransformerUpMulHead"
-    img_size: 768
+    img_size: 512
     num_upsampe_layer: 1
     in_channels: 1024
     channels: 512

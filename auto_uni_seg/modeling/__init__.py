@@ -16,4 +16,4 @@ from .meta_arch.aff_head import CLS
 from .meta_arch.AFFormer_encoder_decoder import AFFormerEncoderDecoder, AFFormerMdsEncoderDecoder, AFFormerMulheadEncoderDecoder
 from .meta_arch.segmenter.factory import SegmenterMaskTransformerMulhead, VisionTransformerBackbone
 from .backbone.vit import VisionTransformer
-from .meta_arch.vit_up_head import VisionTransformerUpHead, VisionTransformerUpHeadMulhead
+from .meta_arch.vit_up_head import VisionTransformerUpHead, VisionTransformerUpMulHead

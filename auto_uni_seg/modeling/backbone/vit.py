@@ -3,7 +3,9 @@ import torch.nn as nn
 from functools import partial
 import math
 from itertools import repeat
-from torch._six import container_abcs
+# from torch._six import container_abcs
+from collections.abc import Iterable
+# from torch import container_abcs
 import warnings
 
 from .helpers import load_pretrained
@@ -60,7 +62,7 @@ default_cfgs = {
 
 
 def to_2tuple(x):
-    if isinstance(x, container_abcs.Iterable):
+    if isinstance(x, Iterable):
         return x
     return tuple(repeat(x, 2))
 
@@ -284,10 +286,9 @@ class VisionTransformer(Backbone):
     """
 
     def __init__(self, cfg, input_shape):
-    def __init__(self, ):
         super(VisionTransformer, self).__init__()
         
-        model_name=cfg.MODEL.BACKBONE.NAME
+        model_name=cfg.MODEL.BACKBONE.backbone_type
         img_size=cfg.MODEL.BACKBONE.img_size
         patch_size=cfg.MODEL.BACKBONE.patch_size
         in_chans=cfg.MODEL.BACKBONE.in_chans

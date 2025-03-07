@@ -28,6 +28,7 @@ class SemanticDatasetMapper:
         size_divisibility,
         should_lookup_table,
         lookup_table,
+        crop_size
     ):
         """
         NOTE: this interface is experimental.
@@ -45,6 +46,7 @@ class SemanticDatasetMapper:
         self.size_divisibility = size_divisibility
         self.should_lookup_table = should_lookup_table
         self.logger = logging.getLogger(__name__)
+        self.crop_size = crop_size
         if self.should_lookup_table:
             self.lb_map = np.arange(256).astype(np.uint8)
             for k, v in lookup_table.items():
@@ -99,7 +101,8 @@ class SemanticDatasetMapper:
             "ignore_label": ignore_label,
             "size_divisibility": cfg.INPUT.SIZE_DIVISIBILITY,
             "should_lookup_table": should_lookup_table,
-            "lookup_table": thing_dataset_id_to_contiguous_id
+            "lookup_table": thing_dataset_id_to_contiguous_id,
+            "crop_size": cfg.INPUT.CROP.SIZE,
         }
         return ret
 
@@ -129,7 +132,7 @@ class SemanticDatasetMapper:
                     dataset_dict["file_name"]
                 )
             )
-
+        
         if self.is_train:
             aug_input = T.AugInput(image, sem_seg=sem_seg_gt)
             aug_input, transforms = T.apply_transform_gens(self.tfm_gens, aug_input)
@@ -141,15 +144,15 @@ class SemanticDatasetMapper:
         if sem_seg_gt is not None:
             sem_seg_gt = torch.as_tensor(sem_seg_gt.astype("long"))
 
-        if self.is_train and self.size_divisibility > 0:
+        if self.is_train:
             image_size = [image.shape[-2], image.shape[-1]] 
             # image_size[0] = self.size_divisibility if image_size[0] == 0 else image_size[0]
             # image_size[1] = self.size_divisibility if image_size[1] == 0 else image_size[1]
             padding_size = [
                 0,
-                self.size_divisibility - image_size[1],
+                self.crop_size[1] - image_size[1],
                 0,
-                self.size_divisibility - image_size[0],
+                self.crop_size[0] - image_size[0],
             ]
             image = F.pad(image, padding_size, value=128).contiguous()
             if sem_seg_gt is not None:

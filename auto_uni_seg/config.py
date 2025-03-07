@@ -221,14 +221,15 @@ def add_segmenter_config(cfg):
     cfg.MODEL.SEGMENTER.DROPOUT = 0.1
 
     
-def add_setr_comfig(cfg):
+def add_setr_config(cfg):
+    cfg.MODEL.BACKBONE.backbone_type = 'vit_large_patch16_384'
     cfg.MODEL.BACKBONE.img_size = 384
     cfg.MODEL.BACKBONE.patch_size = 16
     cfg.MODEL.BACKBONE.in_chans = 3
     cfg.MODEL.BACKBONE.embed_dim = 1024
     cfg.MODEL.BACKBONE.depth = 24
     cfg.MODEL.BACKBONE.num_heads = 16
-    cfg.MODEL.BACKBONE.num_classes = 19
+    cfg.MODEL.BACKBONE.num_classes = 448
     cfg.MODEL.BACKBONE.mlp_ratio = 4
     cfg.MODEL.BACKBONE.qkv_bias = True
     cfg.MODEL.BACKBONE.qk_scale = None
@@ -247,6 +248,11 @@ def add_setr_comfig(cfg):
     cfg.MODEL.SEM_SEG_HEAD.num_upsampe_layer = 1
     cfg.MODEL.SEM_SEG_HEAD.conv3x3_conv1x1 = True
     cfg.MODEL.SEM_SEG_HEAD.OUTPUT_FEAT_DIM = 512
-    cfg.MODEL.MODEL.SEM_SEG_HEAD.in_channels = 1024
-    cfg.MODEL.MODEL.SEM_SEG_HEAD.channels = 512
-    cfg.MODEL.MODEL.SEM_SEG_HEAD.in_index = -1
+    cfg.MODEL.SEM_SEG_HEAD.in_channels = 1024
+    cfg.MODEL.SEM_SEG_HEAD.channels = 512
+    cfg.MODEL.SEM_SEG_HEAD.in_index = -1
+    cfg.MODEL.SEM_SEG_HEAD.embed_dim = 1024
+    cfg.MODEL.SEM_SEG_HEAD.align_corners = False
+    cfg.MODEL.SEM_SEG_HEAD.num_classes = 448
+    cfg.MODEL.SEM_SEG_HEAD.aux_in_index = []
+    

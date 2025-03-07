@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import copy
 from detectron2.config import configurable
 from detectron2.data import MetadataCatalog
 from detectron2.modeling import META_ARCH_REGISTRY, build_backbone, build_sem_seg_head
@@ -163,11 +163,13 @@ class Setr_ARCH(nn.Module):
         backbone = build_backbone(cfg)
         # sem_seg_head = build_sem_seg_head(cfg, 720)
         sem_seg_head = build_sem_seg_head(cfg, backbone.embed_dim)
-        aux_in_index = cfg.MODEL.AUX_IN_INDEX
-        aux_heads = []
+        aux_in_index = cfg.MODEL.SEM_SEG_HEAD.aux_in_index
+        aux_heads = nn.ModuleList([])
         for i in aux_in_index:
-            this_cfg = cfg.copy()
+            this_cfg = copy.deepcopy(cfg)
+            this_cfg.defrost()
             this_cfg.MODEL.SEM_SEG_HEAD.in_index = i
+            this_cfg.freeze()
             aux_heads.append(build_sem_seg_head(this_cfg, backbone.embed_dim))
         datasets_cats = cfg.DATASETS.DATASETS_CATS
         ignore_lb = cfg.DATASETS.IGNORE_LB
@@ -206,6 +208,7 @@ class Setr_ARCH(nn.Module):
             'backbone': backbone,
             'sem_seg_head': sem_seg_head,
             'gnn_model': gnn_model,
+            'aux_heads': aux_heads,
             'datasets_cats': datasets_cats,
             'with_datasets_aux': with_datasets_aux, 
             'ignore_lb': ignore_lb,
@@ -248,6 +251,7 @@ class Setr_ARCH(nn.Module):
         # else:
         
         images = [x["image"].cuda() for x in batched_inputs]
+        logger.info(f"images ori shape:{images[0].shape}") 
         images = [(x - self.pixel_mean) / self.pixel_std for x in images]
         # if self.training:
         # images = ImageList.from_tensors(images, 4)#self.size_divisibility)
@@ -270,8 +274,10 @@ class Setr_ARCH(nn.Module):
                 dataset_lbs = 0
         
         if self.Pretraining:
+            logger.info(f"images shape:{images.tensor.shape}") 
             features = self.backbone(images.tensor)
             outputs = self.proj_head(features, dataset_lbs)
+            
             aux_outputs = [aux_head(features, dataset_lbs) for aux_head in self.aux_heads]
 
             if self.training:

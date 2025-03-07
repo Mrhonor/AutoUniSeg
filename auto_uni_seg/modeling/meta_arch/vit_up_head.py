@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
 import math
-
+import torch
 # from .layers import trunc_normal_
 
 # from ..builder import HEADS
@@ -215,7 +215,7 @@ class VisionTransformerUpMulHead(BaseDecodeHead):
                  norm_layer=partial(nn.LayerNorm, eps=1e-6), norm_cfg=None,
                  num_conv=1, upsampling_method='bilinear', num_upsampe_layer=1, conv3x3_conv1x1=True, 
                 num_unify_classes=19,
-                datasets_cats=[19]
+                datasets_cats=[19],
                  **kwargs):
         super(VisionTransformerUpMulHead, self).__init__(**kwargs)
         norm_layer=partial(nn.LayerNorm, eps=1e-6)
@@ -227,8 +227,9 @@ class VisionTransformerUpMulHead(BaseDecodeHead):
         self.num_upsampe_layer = num_upsampe_layer
         self.conv3x3_conv1x1 = conv3x3_conv1x1
 
-        self.num_unify_class = num_unify_class
+        self.num_unify_class = num_unify_classes
         self.datasets_cats = datasets_cats
+        self.n_datasets = len(self.datasets_cats)
         self.total_cats = 0
         # self.datasets_cats = []
         for i in range(0, self.n_datasets):
@@ -248,7 +249,7 @@ class VisionTransformerUpMulHead(BaseDecodeHead):
                 ))
             
 
-        self.unify_prototype = nn.ParameterList([nn.Parameter(torch.zeros(n_cat, self.output_feat_dim),
+        self.unify_prototype = nn.ParameterList([nn.Parameter(torch.zeros(n_cat, 256),
                                 requires_grad=True) for n_cat in self.datasets_cats])
         _= [trunc_normal_(proto, std=0.02) for proto in self.unify_prototype]
         
@@ -290,17 +291,19 @@ class VisionTransformerUpMulHead(BaseDecodeHead):
         upsampling_method=cfg.MODEL.SEM_SEG_HEAD.upsampling_method
         num_upsampe_layer=cfg.MODEL.SEM_SEG_HEAD.num_upsampe_layer
         conv3x3_conv1x1=cfg.MODEL.SEM_SEG_HEAD.conv3x3_conv1x1
-        num_classes=cfg.MODEL.DATASETS.NUM_UNIFY_CLASS
-        datasets_cats=cfg.MODEL.DATASETS.DATASETS_CATS
-        in_channels = cfg.MODEL.MODEL.SEM_SEG_HEAD.in_channels
-        channels = cfg.MODEL.MODEL.SEM_SEG_HEAD.channels
-        in_index = cfg.MODEL.MODEL.SEM_SEG_HEAD.in_index
+        num_classes=cfg.MODEL.SEM_SEG_HEAD.num_classes
+        num_unify_classes=cfg.DATASETS.NUM_UNIFY_CLASS
+        datasets_cats=cfg.DATASETS.DATASETS_CATS
+        in_channels = cfg.MODEL.SEM_SEG_HEAD.in_channels
+        channels = cfg.MODEL.SEM_SEG_HEAD.channels
+        in_index = cfg.MODEL.SEM_SEG_HEAD.in_index
         return {
             "img_size": img_size,
             "embed_dim": embed_dim,
             "norm_cfg": norm_cfg,
             "num_conv": num_conv,
             "upsampling_method": upsampling_method,
+            "num_unify_classes": num_unify_classes,
             "num_upsampe_layer": num_upsampe_layer,
             "conv3x3_conv1x1": conv3x3_conv1x1,
             "num_classes": num_classes,
